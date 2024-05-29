@@ -35,16 +35,16 @@ void Mesh::LoadFile(const std::string &filename) {
             if (line.starts_with("$End")) {
                 input_type = InputType::None;
                 std::cout << "parsing None" << std::endl;
-            } else if (line == "$MeshFormat") {
+            } else if (line.starts_with("$MeshFormat")) {
                 input_type = InputType::MeshFormat;
                 std::cout << "parsing MeshFormat" << std::endl;
-            } else if (line == "$Nodes") {
+            } else if (line.starts_with("$Nodes")) {
                 input_type = InputType::Nodes;
                 std::cout << "parsing Nodes" << std::endl;
-            } else if (line == "$Elements") {
+            } else if (line.starts_with("$Elements")) {
                 input_type = InputType::Elements;
                 std::cout << "parsing Elements" << std::endl;
-            } else if (line == "$NodeData") {
+            } else if (line.starts_with("$NodeData")) {
                 input_type = InputType::NodeData;
                 std::cout << "parsing NodeData" << std::endl;
             }
@@ -170,21 +170,27 @@ void Mesh::ParseElementsLine(const std::string &line) {
             NOT_IMPLEMENTED;
             break;
     }
+    int number_of_tags = -1;
+    iss >> number_of_tags;
+    if(number_of_tags != 0){
+        NOT_IMPLEMENTED;
+    }
+    std::vector<Node> nodes_for_cell;
+    // std::cout << "Element size: " << nodes_to_get << " nodes." << std::endl;
     for (int i = 0; i < nodes_to_get; ++i) {
         uint node_id;
         iss >> node_id;
         elem.nodes.push_back(node_id);
-        // nodes_for_cell.push_back();
+        nodes_for_cell.push_back(nodes[node_id-1]);
     }
 
     if(elem.type != Element::ElementType::Quadrangle){
-        NOT_IMPLEMENTED; // пока что адаптируюсь под говнокод девочки
+        NOT_IMPLEMENTED; // TODO пока что адаптируюсь под говнокод девочки
     }
-    std::vector<Node> nodes_for_cell;
     // взять те ноды id которых находятся в elem.nodes
-    std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(nodes_for_cell), [&elem](const Node& node){
-                 return std::find(elem.nodes.begin(), elem.nodes.end(), node.id) != elem.nodes.end();
-             });
+    // std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(nodes_for_cell), [&elem](const Node& node){
+    //              return std::find(elem.nodes.begin(), elem.nodes.end(), node.id) != elem.nodes.end();
+    //          });
     elem.cell = Cell::create(nodes_for_cell); 
     elements.push_back(std::move(elem));
 }
@@ -243,7 +249,15 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
         // nodeData.node_values.push_back(NodeData::NodeValues(node_id, std::move(values)));
         // TODO: проверить точно ли values всего 3 штуки всегда?
         // std::cout << node_id << std::endl;
-        auto &node_by_id  = *std::find_if(nodes.begin(), nodes.end(), [&node_id](const Node& node){return node.id==node_id;});
-        node_by_id.vector_field.set_coords(Coords(values[0],values[1],values[2]));
+        nodes[node_id-1].vector_field.set_coords(Coords(values[0],values[1],values[2]));
     }
+}
+std::vector<Cell> Mesh::getCells() const{
+    std::vector<Cell> result_cells;
+    std::transform(elements.cbegin(), elements.cend(), std::back_inserter(result_cells),
+        [](const Element& elem) -> Cell{
+            return elem.cell;
+        }
+    );
+    return result_cells;
 }

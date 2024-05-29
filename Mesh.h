@@ -7,9 +7,6 @@
 
 class Mesh {
 public:
-    void LoadFile(const std::string &filename);
-
-private:
     struct MeshFormat {
         float version; // version of .msh format
         int file_type; // must be 0 ??
@@ -55,6 +52,7 @@ private:
         std::vector<NodeValues> node_values;
     };
 
+private:
     MeshFormat meshFormat;
     std::vector<Node> nodes;
     std::vector<Element> elements;
@@ -70,4 +68,11 @@ private:
     void ParseNodeData(std::vector<std::string> &&NodeDataBlock);
 
     void CalculateBoundingBox();
+public:
+    void LoadFile(const std::string &filename);
+
+    std::vector<Cell> getCells() const;
+
+    inline const BoundingBox& getBoundingBox() const {return boundingBox; }
+
 };

@@ -1,4 +1,5 @@
 #pragma once
+#include <numeric>
 #include <vector>
 #include <algorithm>
 #include "Line.h"
@@ -54,70 +55,47 @@ public:
     }
 
     double find_biggest_x() const {
-        size_t result_ind = 0;
-        for (size_t ind = 0; ind < nodes.size(); ++ind) {
-            if (nodes[ind].coords.x > nodes[result_ind].coords.x) {
-                result_ind = ind;
-            }
-        }
-        return nodes[result_ind].coords.x;
+      return std::accumulate(nodes.cbegin(), nodes.cend(), nodes[0].coords.x,
+                      [](double max, const Node &next) {
+                        return std::max(max, next.coords.x);
+                      });
     }
 
     double find_biggest_y() const {
-        size_t result_ind = 0;
-        for (size_t ind = 0; ind < nodes.size(); ++ind) {
-            if (nodes[ind].coords.y > nodes[result_ind].coords.y) {
-                result_ind = ind;
-            }
-        }
-        return nodes[result_ind].coords.y;
+      return std::accumulate(nodes.cbegin(), nodes.cend(), nodes[0].coords.y,
+                      [](double max, const Node &next) {
+                        return std::max(max, next.coords.y);
+                      });
     }
 
     double find_smallest_x() const {
-        size_t result_ind = 0;
-        for (size_t ind = 0; ind < nodes.size(); ++ind) {
-            if (nodes[ind].coords.x < nodes[result_ind].coords.x) {
-                result_ind = ind;
-            }
-        }
-        return nodes[result_ind].coords.x;
+      return std::accumulate(nodes.cbegin(), nodes.cend(), nodes[0].coords.x,
+                      [](double min, const Node &next) {
+                        return std::min(min, next.coords.x);
+                      });
     }
 
     double find_smallest_y() const {
-        size_t result_ind = 0;
-        for (size_t ind = 0; ind < nodes.size(); ++ind) {
-            if (nodes[ind].coords.y < nodes[result_ind].coords.y) {
-                result_ind = ind;
-            }
-        }
-        return nodes[result_ind].coords.y;
+      return std::accumulate(nodes.cbegin(), nodes.cend(), nodes[0].coords.y,
+                      [](double min, const Node &next) {
+                        return std::min(min, next.coords.y);
+                      });
     }
 
     bool is_in_x_range(const Node& node) const {
-        return node.coords.x >= find_smallest_x() && node.coords.x <= find_biggest_x();
+        return find_smallest_x() <=node.coords.x  && node.coords.x <= find_biggest_x();
     }
 
     bool is_in_y_range(const Node& node) const {
-        return node.coords.y >= find_smallest_y() && node.coords.y <= find_biggest_y();
+        return find_smallest_y() <= node.coords.y && node.coords.y <= find_biggest_y();
     }
 
     bool contains_node(const Node& node) const {
-        return is_in_x_range(node) && is_in_y_range(node) &&
-               Line(nodes[0], nodes[1]).find_position(node) >= 0.0 &&
-               Line(nodes[1], nodes[2]).find_position(node) >= 0.0 &&
-               Line(nodes[2], nodes[3]).find_position(node) >= 0.0 &&
+        return is_in_x_range(node) and is_in_y_range(node) and
+               Line(nodes[0], nodes[1]).find_position(node) >= 0.0 and
+               Line(nodes[1], nodes[2]).find_position(node) >= 0.0 and
+               Line(nodes[2], nodes[3]).find_position(node) >= 0.0 and
                Line(nodes[3], nodes[0]).find_position(node) >= 0.0;
-    }
-    bool contains_node(const Node& node) {
-        bool is_in_lines = false;
-
-        // Check if the node is within the polygon's lines
-        is_in_lines = Line(nodes[0], nodes[1]).find_position(node) >= 0.0
-                   && Line(nodes[1], nodes[2]).find_position(node) >= 0.0
-                   && Line(nodes[2], nodes[3]).find_position(node) >= 0.0
-                   && Line(nodes[3], nodes[0]).find_position(node) >= 0.0;
-
-        return is_in_x_range(node) && is_in_y_range(node)  && is_in_lines;
     }
 
     std::optional<CrossPoints> find_cross_point_x(const Node& node) const {
