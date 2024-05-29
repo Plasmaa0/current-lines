@@ -4,6 +4,7 @@
 #include <string>
 #include <utility>
 #include <numeric>
+#include <algorithm>
 #include <iterator>
 #include <algorithm>
 #include "Utils.h"
@@ -17,6 +18,7 @@ enum class InputType {
 };
 
 void Mesh::LoadFile(const std::string &filename) {
+    std::cout << "loading file: " <<  filename << std::endl;
     std::ifstream file(filename);
     if (not file.is_open()) {
         throw std::invalid_argument("FILE NOT OPEN");
@@ -32,14 +34,19 @@ void Mesh::LoadFile(const std::string &filename) {
         if (line.starts_with('$')) {
             if (line.starts_with("$End")) {
                 input_type = InputType::None;
+                std::cout << "parsing None" << std::endl;
             } else if (line == "$MeshFormat") {
                 input_type = InputType::MeshFormat;
+                std::cout << "parsing MeshFormat" << std::endl;
             } else if (line == "$Nodes") {
                 input_type = InputType::Nodes;
+                std::cout << "parsing Nodes" << std::endl;
             } else if (line == "$Elements") {
                 input_type = InputType::Elements;
+                std::cout << "parsing Elements" << std::endl;
             } else if (line == "$NodeData") {
                 input_type = InputType::NodeData;
+                std::cout << "parsing NodeData" << std::endl;
             }
             continue;
         }
@@ -78,7 +85,32 @@ void Mesh::LoadFile(const std::string &filename) {
                 break;
         }
     }
+    std::cout << "NodeData parsing" << std::endl;
     ParseNodeData(std::move(NodeDataBlock));
+    std::cout << "Calculating bounding box" << std::endl;
+    CalculateBoundingBox();
+    std::cout << "Bounding Box X from " << boundingBox.x_min() << " to " << boundingBox.x_max() << std::endl <<
+    "Y from " << boundingBox.y_min() << " to " << boundingBox.y_max() << std::endl;
+    std::cout << "file: " <<  filename << " loaded" << std::endl;
+}
+
+void Mesh::CalculateBoundingBox(){
+    boundingBox.x_range = {0,0};
+    boundingBox.y_range = {0,0};
+    std::for_each(nodes.begin(), nodes.end(), [&](const Node& node){
+        if (std::get<0>(boundingBox.x_range) > node.coords.x) {
+            std::get<0>(boundingBox.x_range) = node.coords.x;
+        }
+        if (std::get<0>(boundingBox.y_range) > node.coords.y) {
+            std::get<0>(boundingBox.y_range) = node.coords.y;
+        }
+        if (std::get<1>(boundingBox.x_range) < node.coords.x) {
+            std::get<1>(boundingBox.x_range) = node.coords.x;
+        }
+        if (std::get<1>(boundingBox.y_range) < node.coords.y) {
+            std::get<1>(boundingBox.y_range) = node.coords.y;
+        }
+  });
 }
 
 void Mesh::ParseMeshFormatLine(const std::string &line) {
@@ -142,7 +174,18 @@ void Mesh::ParseElementsLine(const std::string &line) {
         uint node_id;
         iss >> node_id;
         elem.nodes.push_back(node_id);
+        // nodes_for_cell.push_back();
     }
+
+    if(elem.type != Element::ElementType::Quadrangle){
+        NOT_IMPLEMENTED; // пока что адаптируюсь под говнокод девочки
+    }
+    std::vector<Node> nodes_for_cell;
+    // взять те ноды id которых находятся в elem.nodes
+    std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(nodes_for_cell), [&elem](const Node& node){
+                 return std::find(elem.nodes.begin(), elem.nodes.end(), node.id) != elem.nodes.end();
+             });
+    elem.cell = Cell::create(nodes_for_cell); 
     elements.push_back(std::move(elem));
 }
 
@@ -189,6 +232,7 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
     for (int i = 0; i < num_int_tags; ++i) {
         nodeData.int_tags.push_back(pop_int());
     }
+    // main part
     while (not NodeDataBlock.empty()) {
         auto &&line = pop_str();
         std::istringstream iss(line);
@@ -196,6 +240,10 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
         iss >> node_id;
         std::vector<double> values;
         std::copy(std::istream_iterator<double>(iss), std::istream_iterator<double>(), std::back_inserter(values));
-        nodeData.node_values.push_back(NodeData::NodeValues(node_id, std::move(values)));
+        // nodeData.node_values.push_back(NodeData::NodeValues(node_id, std::move(values)));
+        // TODO: проверить точно ли values всего 3 штуки всегда?
+        // std::cout << node_id << std::endl;
+        auto &node_by_id  = *std::find_if(nodes.begin(), nodes.end(), [&node_id](const Node& node){return node.id==node_id;});
+        node_by_id.vector_field.set_coords(Coords(values[0],values[1],values[2]));
     }
 }
