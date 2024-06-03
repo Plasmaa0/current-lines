@@ -34,19 +34,19 @@ void Mesh::LoadFile(const std::string &filename) {
         if (line.starts_with('$')) {
             if (line.starts_with("$End")) {
                 input_type = InputType::None;
-                std::cout << "parsing None" << std::endl;
+                std::cout << "done" << std::endl;
             } else if (line.starts_with("$MeshFormat")) {
                 input_type = InputType::MeshFormat;
-                std::cout << "parsing MeshFormat" << std::endl;
+                std::cout << "parsing MeshFormat ... ";
             } else if (line.starts_with("$Nodes")) {
                 input_type = InputType::Nodes;
-                std::cout << "parsing Nodes" << std::endl;
+                std::cout << "parsing Nodes ... ";
             } else if (line.starts_with("$Elements")) {
                 input_type = InputType::Elements;
-                std::cout << "parsing Elements" << std::endl;
+                std::cout << "parsing Elements ... ";
             } else if (line.starts_with("$NodeData")) {
                 input_type = InputType::NodeData;
-                std::cout << "parsing NodeData" << std::endl;
+                std::cout << "parsing NodeData ... ";
             }
             continue;
         }
@@ -87,6 +87,8 @@ void Mesh::LoadFile(const std::string &filename) {
     }
     std::cout << "NodeData parsing" << std::endl;
     ParseNodeData(std::move(NodeDataBlock));
+    std::cout << "Creating cells" << std::endl;
+    CreateCells();
     std::cout << "Calculating bounding box" << std::endl;
     CalculateBoundingBox();
     std::cout << "Bounding Box X from " << boundingBox.x_min() << " to " << boundingBox.x_max() << std::endl <<
@@ -175,13 +177,13 @@ void Mesh::ParseElementsLine(const std::string &line) {
     if(number_of_tags != 0){
         NOT_IMPLEMENTED;
     }
-    std::vector<Node> nodes_for_cell;
+    // std::vector<Node> nodes_for_cell;
     // std::cout << "Element size: " << nodes_to_get << " nodes." << std::endl;
     for (int i = 0; i < nodes_to_get; ++i) {
         uint node_id;
         iss >> node_id;
         elem.nodes.push_back(node_id);
-        nodes_for_cell.push_back(nodes[node_id-1]);
+        // nodes_for_cell.push_back(nodes[node_id-1]);
     }
 
     if(elem.type != Element::ElementType::Quadrangle){
@@ -191,7 +193,7 @@ void Mesh::ParseElementsLine(const std::string &line) {
     // std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(nodes_for_cell), [&elem](const Node& node){
     //              return std::find(elem.nodes.begin(), elem.nodes.end(), node.id) != elem.nodes.end();
     //          });
-    elem.cell = Cell::create(nodes_for_cell); 
+    // elem.cell = Cell::create(nodes_for_cell); 
     elements.push_back(std::move(elem));
 }
 
@@ -260,4 +262,14 @@ std::vector<Cell> Mesh::getCells() const{
         }
     );
     return result_cells;
+}
+
+void Mesh::CreateCells() {
+    for(auto &elem: elements){
+        std::vector<Node> nodes_for_cell;
+        for(auto &node_id: elem.nodes){
+            nodes_for_cell.push_back(nodes[node_id-1]);
+        }
+        elem.cell = Cell::create(nodes_for_cell); 
+    }
 }

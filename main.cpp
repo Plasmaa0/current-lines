@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Mesh.h"
 #include "CurrentLineGenerator.h"
 #include <iterator>
@@ -7,13 +8,15 @@
 int main(){
     // load mesh
     auto m = Mesh();
-    m.LoadFile("../FM.msh"); // FIXME: в векторное поле вместо векторного поля загружаются координаты точек
+    m.LoadFile("../FM.msh");
     const Mesh::BoundingBox& bBox = m.getBoundingBox();
     auto size_x = bBox.x_max() - bBox.x_min();
     auto size_y = bBox.y_max() - bBox.y_min();
     // get base point
-    double x = -0.1;
-    double y = 0.14;
+    double x = -0.35;
+    double y = 0.145;
+    // double x = 0.1;
+    // double y = 0.1;
     // create current line generator
     CurrentLineGenerator gen(m.getCells(), 
                              size_x, size_y, 

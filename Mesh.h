@@ -67,6 +67,8 @@ private:
 
     void ParseNodeData(std::vector<std::string> &&NodeDataBlock);
 
+    void CreateCells();
+
     void CalculateBoundingBox();
 public:
     void LoadFile(const std::string &filename);
