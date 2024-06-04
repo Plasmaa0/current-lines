@@ -5,4 +5,3 @@
 #include "Geometry/Line.h"
 #include "Geometry/Node.h"
 #include "Geometry/VectorField.h"
-#include "Geometry/Element.h"

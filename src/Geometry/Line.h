@@ -11,18 +11,19 @@ public:
     Node second_point;
     double coef_a, coef_b, coef_c;
 
-    Line(const Node& A, const Node& B);
+    Line(const Node &A, const Node &B);
 
-    [[nodiscard]] bool theSame(const Line& other) const;
+    [[nodiscard]] bool operator==(const Line &other) const;
 
-    [[nodiscard]] double findPosition(const Node& node) const;
+    [[nodiscard]] double findPosition(const Node &node) const;
 
     [[nodiscard]] double squareLength() const;
+
     [[nodiscard]] double length() const;
 
-    [[nodiscard]] bool isParallel(const Line& other) const;
+    [[nodiscard]] bool isParallel(const Line &other) const;
 
-    [[nodiscard]] std::optional<Node> linesIntersect(const Line& other) const;
+    [[nodiscard]] std::optional<Node> linesIntersect(const Line &other) const;
 };
 
 

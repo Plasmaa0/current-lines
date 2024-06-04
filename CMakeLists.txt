@@ -26,10 +26,20 @@ add_library(current_lines-geometry SHARED
         src/Geometry/Node.cpp
         src/Geometry/VectorField.h
         src/Geometry/VectorField.cpp
-        src/Geometry/Geometry.h
-        src/Geometry/Element.cpp
-        src/Geometry/Element.h)
+        src/Geometry/Geometry.h)
 target_include_directories(current_lines-geometry PRIVATE src)
+
+
+add_library(current_lines-element SHARED
+        src/Element/Element.cpp
+        src/Element/Element.h
+        src/Element/QuadrangleElement.cpp
+        src/Element/QuadrangleElement.h
+        src/Element/ElementFactory.cpp
+        src/Element/ElementFactory.h
+        src/Element/GenericElement.cpp
+        src/Element/GenericElement.h)
+target_include_directories(current_lines-element PRIVATE src)
 
 
 add_library(current_lines-mesh SHARED
@@ -41,12 +51,16 @@ target_include_directories(current_lines-mesh PRIVATE src)
 add_library(current_lines-generator SHARED
         src/CurrentLineGenerator/CurrentLineGenerator.h
         src/CurrentLineGenerator/CurrentLineGenerator.cpp
-        src/CurrentLineGenerator/Interpolation.h
-        src/CurrentLineGenerator/Interpolation.cpp)
+)
 target_include_directories(current_lines-generator PRIVATE src)
 
 
 add_executable(current_lines src/main.cpp)
 target_include_directories(current_lines PUBLIC src)
 
-target_link_libraries(current_lines current_lines-generator current_lines-geometry current_lines-mesh current_lines-utils)
+target_link_libraries(current_lines
+        current_lines-generator
+        current_lines-geometry
+        current_lines-mesh
+        current_lines-utils
+        current_lines-element)

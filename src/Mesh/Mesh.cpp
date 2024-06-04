@@ -1,16 +1,15 @@
 #include "Mesh.h"
 
 #include <Utils/Nimpl.h>
+#include <Element/ElementFactory.h>
 
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <utility>
-#include <numeric>
 #include <algorithm>
 #include <iostream>
 #include <iterator>
-#include <algorithm>
 
 enum class InputType {
     None,
@@ -21,6 +20,7 @@ enum class InputType {
 };
 
 void Mesh::LoadFile(const std::string &filename) {
+    initializeElementTypeLUT();
     std::cout << "loading file: " << filename << std::endl;
     std::ifstream file(filename);
     if (not file.is_open()) {
@@ -85,7 +85,6 @@ void Mesh::LoadFile(const std::string &filename) {
 
             default:
                 std::unreachable();
-                break;
         }
     }
     std::cout << "NodeData parsing" << std::endl;
@@ -95,6 +94,16 @@ void Mesh::LoadFile(const std::string &filename) {
     std::cout << "Bounding Box X from " << boundingBox.x_min() << " to " << boundingBox.x_max() << std::endl <<
               "Y from " << boundingBox.y_min() << " to " << boundingBox.y_max() << std::endl;
     std::cout << "file: " << filename << " loaded" << std::endl;
+}
+
+constexpr void Mesh::initializeElementTypeLUT() {
+    elementTypeLUT[2] = {Element::Type::Triangle, 3}; // 3 node triangle
+    elementTypeLUT[3] = {Element::Type::Quadrangle, 4}; // 4 node quadrangle
+    elementTypeLUT[4] = {Element::Type::Tetrahedron, 4}; // 4 node tetrahedron
+    elementTypeLUT[5] = {Element::Type::Hexahedron, 8}; // 8 node hexahedron
+    elementTypeLUT[6] = {Element::Type::Prism, 6}; // 6 node prism
+    elementTypeLUT[7] = {Element::Type::Pyramid, 5}; // 5 node pyramid
+
 }
 
 void Mesh::CalculateBoundingBox() {
@@ -132,7 +141,7 @@ void Mesh::ParseNodesLine(const std::string &line) {
     uint id;
     double x, y, z;
     iss >> id >> x >> y >> z;
-    nodes.push_back(Node(id, x, y, z));
+    nodes.emplace_back(id, x, y, z);
 }
 
 void Mesh::ParseElementsLine(const std::string &line) {
@@ -141,44 +150,25 @@ void Mesh::ParseElementsLine(const std::string &line) {
     std::istringstream iss(line);
     uint elementID;
     iss >> elementID;
-    int type_id;
+    uint type_id;
     iss >> type_id;
-    uint nodes_to_get = 0;
-    Element::Type elementType;
-    switch (type_id) { // TODO сделать LUT
-        case 2: // 3 node triangle
-            elementType = Element::Type::Triangle;
-            nodes_to_get = 3;
-            break;
-        case 3: // 4 node quadrangle
-            elementType = Element::Type::Quadrangle;
-            nodes_to_get = 4;
-            break;
-        case 4: // 4 node tetrahedron
-            elementType = Element::Type::Tetrahedron;
-            nodes_to_get = 4;
-            break;
-        case 5: // 8 node hexahedron
-            elementType = Element::Type::Hexahedron;
-            nodes_to_get = 8;
-            break;
-        case 6: // 6 node prism
-            elementType = Element::Type::Prism;
-            nodes_to_get = 6;
-            break;
-        case 7: // 5 node pyramid
-            elementType = Element::Type::Pyramid;
-            nodes_to_get = 5;
-            break;
-        default:
-            NOT_IMPLEMENTED;
-            break;
-    }
+//    uint nodes_to_get = 0;
+//    Element::Type elementType;
     int number_of_tags = -1;
     iss >> number_of_tags;
     if (number_of_tags != 0) {
+        int tag;
+        for (int i = 0; i < number_of_tags; ++i) {
+            iss >> tag;
+        }
+//        NOT_IMPLEMENTED;
+    }
+
+    if (not elementTypeLUT.contains(type_id)) {
+        return;
         NOT_IMPLEMENTED;
     }
+    auto &[elementType, nodes_to_get] = elementTypeLUT[type_id];
     std::vector<std::reference_wrapper<Node>> elementNodes;
 //    std::cout << "Element size: " << nodes_to_get << " nodes." << std::endl;
     for (int i = 0; i < nodes_to_get; ++i) {
@@ -187,10 +177,7 @@ void Mesh::ParseElementsLine(const std::string &line) {
         elementNodes.push_back(std::ref(nodes[node_id - 1]));
     }
 
-    if (elementType != Element::Type::Quadrangle) {
-        NOT_IMPLEMENTED; // TODO пока что адаптируюсь под говнокод девочки
-    }
-    elements.push_back(std::move(Element(elementNodes, elementID, elementType)));
+    elements.push_back(ElementFactory::createElement(elementNodes, elementID, elementType));
 }
 
 void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
@@ -226,15 +213,15 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
     };
     auto num_str_tags = pop_int();
     for (int i = 0; i < num_str_tags; ++i) {
-        nodeData.str_tags.push_back(std::move(pop_str()));
+        nodeData.strTags.push_back(std::move(pop_str()));
     }
     auto num_real_tags = pop_int();
     for (int i = 0; i < num_real_tags; ++i) {
-        nodeData.real_tags.push_back(pop_real());
+        nodeData.realTags.push_back(pop_real());
     }
     auto num_int_tags = pop_int();
     for (int i = 0; i < num_int_tags; ++i) {
-        nodeData.int_tags.push_back(pop_int());
+        nodeData.intTags.push_back(pop_int());
     }
     // main part
     while (not NodeDataBlock.empty()) {
@@ -244,16 +231,15 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
         iss >> node_id;
         std::vector<double> values;
         std::copy(std::istream_iterator<double>(iss), std::istream_iterator<double>(), std::back_inserter(values));
-        // nodeData.node_values.push_back(NodeData::NodeValues(node_id, std::move(values)));
+        // nodeData.nodeValues.push_back(NodeData::NodeValue(node_id, std::move(values)));
         // TODO: проверить точно ли values всего 3 штуки всегда?
-        // std::cout << node_id << std::endl;
         nodes[node_id - 1].vector_field.set_coords(Coords(values[0], values[1], values[2]));
     }
 }
 
-std::optional<std::reference_wrapper<const Element>> Mesh::findElementByNode(const Node &node_p) const {
+std::optional<std::shared_ptr<Element>> Mesh::findElementByNode(const Node &node_p) const {
     for (const auto &element: elements) {
-        if (element.contains_node(node_p)) {
+        if (element->contains_node(node_p)) {
             return std::ref(element);
         }
     }

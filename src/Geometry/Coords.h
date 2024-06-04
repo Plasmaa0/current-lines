@@ -3,7 +3,7 @@
 struct Coords {
     Coords(double x_p, double y_p, double z_p=0);
 
-    [[nodiscard]] bool the_same(const Coords& other) const;
+    [[nodiscard]] bool operator==(const Coords &other) const;
 
     void set_coords(double x_p, double y_p, double z_p=0);
 

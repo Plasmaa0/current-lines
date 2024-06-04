@@ -9,8 +9,8 @@ Line::Line(const Node &A, const Node &B)
           coef_b(B.coords.x - A.coords.x),
           coef_c(A.coords.x * B.coords.y - B.coords.x * A.coords.y) {}
 
-bool Line::theSame(const Line &other) const {
-    return first_point.the_same(other.first_point) && second_point.the_same(other.second_point);
+bool Line::operator==(const Line &other) const {
+    return first_point == other.first_point and second_point == other.second_point;
 }
 
 double Line::findPosition(const Node &node) const {
@@ -27,8 +27,10 @@ double Line::findPosition(const Node &node) const {
 }
 
 double Line::squareLength() const {
-    return (second_point.coords.x - first_point.coords.x) * (second_point.coords.x - first_point.coords.x) +
-           (second_point.coords.y - first_point.coords.y) * (second_point.coords.y - first_point.coords.y);
+    double delta_x = second_point.coords.x - first_point.coords.x;
+    double delta_y = second_point.coords.y - first_point.coords.y;
+    double delta_z = second_point.coords.z - first_point.coords.z;
+    return delta_x * delta_x + delta_y * delta_y + delta_z * delta_z;
 }
 
 double Line::length() const {
@@ -36,10 +38,10 @@ double Line::length() const {
 }
 
 bool Line::isParallel(const Line &other) const {
-    return (coef_a == 0.0 && other.coef_a == 0.0) ||
-           (coef_b == 0.0 && other.coef_b == 0.0) ||
-           ((coef_a / other.coef_a) == (coef_b / other.coef_b) &&
-            (coef_a != 0.0 && coef_b != 0.0 && other.coef_a != 0.0 && other.coef_b != 0.0));
+    return (coef_a == 0.0 && other.coef_a == 0.0) or
+           (coef_b == 0.0 && other.coef_b == 0.0) or
+           ((coef_a / other.coef_a) == (coef_b / other.coef_b) and
+            (coef_a != 0.0 and coef_b != 0.0 and other.coef_a != 0.0 and other.coef_b != 0.0));
 }
 
 std::optional<Node> Line::linesIntersect(const Line &other) const {
@@ -62,4 +64,5 @@ std::optional<Node> Line::linesIntersect(const Line &other) const {
 
     return Node(Node::INVALID_ID, x, y);
 }
+
 

@@ -19,7 +19,7 @@ public:
 
     Node(uint id_p, const Coords& coords_p);
 
-    [[nodiscard]] bool the_same(const Node& other) const;
+    [[nodiscard]] bool operator==(const Node &other) const;
 
     void set_coords(const Coords& new_coords);
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Node.h"
-#include "CrossPoints.h"
+#include "Geometry/Node.h"
+#include "Geometry/CrossPoints.h"
 #include <vector>
 #include <cstdlib>
 #include <functional>
@@ -18,9 +18,9 @@ public:
         Pyramid,
     };
 
-    explicit Element(const std::vector<std::reference_wrapper<Node>> &nodes_p, uint id_p, Type type_p);
+    Element(const std::vector<std::reference_wrapper<Node>> &nodes_p, uint id_p, Type type_p);
 
-    Element(Node &node1, Node &node2, Node &node3, Node &node4, uint id_p, Type type_p);
+    Element(uint id_p, Type type_p);
 
     [[nodiscard]] uint getId() const;
 
@@ -31,8 +31,6 @@ public:
     void setType(Type type_p);
 
     [[nodiscard]] const Node &getNodeByIndex(uint index) const;
-
-    [[nodiscard]] bool the_same(const Element &other) const;
 
     [[nodiscard]] bool operator==(const Element &other) const;
 
@@ -49,16 +47,16 @@ public:
     [[nodiscard]] bool is_in_y_range(const Node &node) const;
 
     [[nodiscard]] bool contains_node(const Node &node) const;
+    [[nodiscard]] bool contains_node_cross_product(const Node &node) const;
+    [[nodiscard]] bool contains_node_raycasting(const Node &node) const;
 
-    [[nodiscard]] std::optional<CrossPoints> find_cross_point_x(const Node &node) const;
+    [[nodiscard]] virtual Coords interpolate(const Node &node) const = 0;
 
-private:
+protected:
     uint id;
     Type type;
     // skip tags
     std::vector<std::reference_wrapper<Node>> nodes;
 
     void sort_nodes();
-
-
 };

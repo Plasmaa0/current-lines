@@ -7,7 +7,7 @@ Coords::Coords(double x_p, double y_p, double z_p) {
     z = z_p;
 }
 
-bool Coords::the_same(const Coords &other) const {
+bool Coords::operator==(const Coords &other) const {
     return x == other.x && y == other.y && z == other.z;
 }
 

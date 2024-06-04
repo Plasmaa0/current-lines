@@ -11,9 +11,9 @@ Node::Node(uint id_p, const Coords &coords_p) : id(id_p),
                                                 vector_field(coords),
                                                 color(Colors::GREEN) {}
 
-bool Node::the_same(const Node &other) const {
+bool Node::operator==(const Node &other) const {
     return id == other.id
-           && coords.the_same(other.coords)
+           && coords == other.coords
            && color == other.color;
 }
 
@@ -24,4 +24,5 @@ void Node::set_coords(const Coords &new_coords) {
 void Node::set_color(Colors new_color) {
     color = new_color;
 }
+
 
