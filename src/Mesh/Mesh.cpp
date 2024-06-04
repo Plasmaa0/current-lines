@@ -1,13 +1,16 @@
 #include "Mesh.h"
+
+#include <Utils/Nimpl.h>
+
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <utility>
 #include <numeric>
 #include <algorithm>
+#include <iostream>
 #include <iterator>
 #include <algorithm>
-#include "Utils.h"
 
 enum class InputType {
     None,
@@ -18,7 +21,7 @@ enum class InputType {
 };
 
 void Mesh::LoadFile(const std::string &filename) {
-    std::cout << "loading file: " <<  filename << std::endl;
+    std::cout << "loading file: " << filename << std::endl;
     std::ifstream file(filename);
     if (not file.is_open()) {
         throw std::invalid_argument("FILE NOT OPEN");
@@ -87,19 +90,17 @@ void Mesh::LoadFile(const std::string &filename) {
     }
     std::cout << "NodeData parsing" << std::endl;
     ParseNodeData(std::move(NodeDataBlock));
-    std::cout << "Creating cells" << std::endl;
-    CreateCells();
     std::cout << "Calculating bounding box" << std::endl;
     CalculateBoundingBox();
     std::cout << "Bounding Box X from " << boundingBox.x_min() << " to " << boundingBox.x_max() << std::endl <<
-    "Y from " << boundingBox.y_min() << " to " << boundingBox.y_max() << std::endl;
-    std::cout << "file: " <<  filename << " loaded" << std::endl;
+              "Y from " << boundingBox.y_min() << " to " << boundingBox.y_max() << std::endl;
+    std::cout << "file: " << filename << " loaded" << std::endl;
 }
 
-void Mesh::CalculateBoundingBox(){
-    boundingBox.x_range = {0,0};
-    boundingBox.y_range = {0,0};
-    std::for_each(nodes.begin(), nodes.end(), [&](const Node& node){
+void Mesh::CalculateBoundingBox() {
+    boundingBox.x_range = {0, 0};
+    boundingBox.y_range = {0, 0};
+    std::for_each(nodes.begin(), nodes.end(), [&](const Node &node) {
         if (std::get<0>(boundingBox.x_range) > node.coords.x) {
             std::get<0>(boundingBox.x_range) = node.coords.x;
         }
@@ -112,7 +113,7 @@ void Mesh::CalculateBoundingBox(){
         if (std::get<1>(boundingBox.y_range) < node.coords.y) {
             std::get<1>(boundingBox.y_range) = node.coords.y;
         }
-  });
+    });
 }
 
 void Mesh::ParseMeshFormatLine(const std::string &line) {
@@ -137,35 +138,36 @@ void Mesh::ParseNodesLine(const std::string &line) {
 void Mesh::ParseElementsLine(const std::string &line) {
     // elm-number elm-type number-of-tags < tag > … node-number-list
     //                     _______skipping this_____
-    Element elem;
     std::istringstream iss(line);
-    iss >> elem.id;
+    uint elementID;
+    iss >> elementID;
     int type_id;
     iss >> type_id;
     uint nodes_to_get = 0;
-    switch (type_id) {
+    Element::Type elementType;
+    switch (type_id) { // TODO сделать LUT
         case 2: // 3 node triangle
-            elem.type = Element::ElementType::Triangle;
+            elementType = Element::Type::Triangle;
             nodes_to_get = 3;
             break;
         case 3: // 4 node quadrangle
-            elem.type = Element::ElementType::Quadrangle;
+            elementType = Element::Type::Quadrangle;
             nodes_to_get = 4;
             break;
         case 4: // 4 node tetrahedron
-            elem.type = Element::ElementType::Tetrahedron;
+            elementType = Element::Type::Tetrahedron;
             nodes_to_get = 4;
             break;
         case 5: // 8 node hexahedron
-            elem.type = Element::ElementType::Hexahedron;
+            elementType = Element::Type::Hexahedron;
             nodes_to_get = 8;
             break;
         case 6: // 6 node prism
-            elem.type = Element::ElementType::Prism;
+            elementType = Element::Type::Prism;
             nodes_to_get = 6;
             break;
         case 7: // 5 node pyramid
-            elem.type = Element::ElementType::Pyramid;
+            elementType = Element::Type::Pyramid;
             nodes_to_get = 5;
             break;
         default:
@@ -174,27 +176,21 @@ void Mesh::ParseElementsLine(const std::string &line) {
     }
     int number_of_tags = -1;
     iss >> number_of_tags;
-    if(number_of_tags != 0){
+    if (number_of_tags != 0) {
         NOT_IMPLEMENTED;
     }
-    // std::vector<Node> nodes_for_cell;
-    // std::cout << "Element size: " << nodes_to_get << " nodes." << std::endl;
+    std::vector<std::reference_wrapper<Node>> elementNodes;
+//    std::cout << "Element size: " << nodes_to_get << " nodes." << std::endl;
     for (int i = 0; i < nodes_to_get; ++i) {
         uint node_id;
         iss >> node_id;
-        elem.nodes.push_back(node_id);
-        // nodes_for_cell.push_back(nodes[node_id-1]);
+        elementNodes.push_back(std::ref(nodes[node_id - 1]));
     }
 
-    if(elem.type != Element::ElementType::Quadrangle){
+    if (elementType != Element::Type::Quadrangle) {
         NOT_IMPLEMENTED; // TODO пока что адаптируюсь под говнокод девочки
     }
-    // взять те ноды id которых находятся в elem.nodes
-    // std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(nodes_for_cell), [&elem](const Node& node){
-    //              return std::find(elem.nodes.begin(), elem.nodes.end(), node.id) != elem.nodes.end();
-    //          });
-    // elem.cell = Cell::create(nodes_for_cell); 
-    elements.push_back(std::move(elem));
+    elements.push_back(std::move(Element(elementNodes, elementID, elementType)));
 }
 
 void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
@@ -251,25 +247,16 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
         // nodeData.node_values.push_back(NodeData::NodeValues(node_id, std::move(values)));
         // TODO: проверить точно ли values всего 3 штуки всегда?
         // std::cout << node_id << std::endl;
-        nodes[node_id-1].vector_field.set_coords(Coords(values[0],values[1],values[2]));
+        nodes[node_id - 1].vector_field.set_coords(Coords(values[0], values[1], values[2]));
     }
-}
-std::vector<Cell> Mesh::getCells() const{
-    std::vector<Cell> result_cells;
-    std::transform(elements.cbegin(), elements.cend(), std::back_inserter(result_cells),
-        [](const Element& elem) -> Cell{
-            return elem.cell;
-        }
-    );
-    return result_cells;
 }
 
-void Mesh::CreateCells() {
-    for(auto &elem: elements){
-        std::vector<Node> nodes_for_cell;
-        for(auto &node_id: elem.nodes){
-            nodes_for_cell.push_back(nodes[node_id-1]);
+std::optional<std::reference_wrapper<const Element>> Mesh::findElementByNode(const Node &node_p) const {
+    for (const auto &element: elements) {
+        if (element.contains_node(node_p)) {
+            return std::ref(element);
         }
-        elem.cell = Cell::create(nodes_for_cell); 
     }
+    std::cout << "current cell not found" << std::endl << std::flush;
+    return std::nullopt;
 }

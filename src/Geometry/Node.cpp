@@ -1,0 +1,27 @@
+#include "Node.h"
+
+Node::Node(uint id_p, double x_p, double y_p, double z_p)
+        : id(id_p),
+          coords(x_p, y_p, z_p),
+          vector_field(coords),
+          color(Colors::GREEN) {}
+
+Node::Node(uint id_p, const Coords &coords_p) : id(id_p),
+                                                coords(coords_p),
+                                                vector_field(coords),
+                                                color(Colors::GREEN) {}
+
+bool Node::the_same(const Node &other) const {
+    return id == other.id
+           && coords.the_same(other.coords)
+           && color == other.color;
+}
+
+void Node::set_coords(const Coords &new_coords) {
+    coords.set_coords(new_coords.x, new_coords.y);
+}
+
+void Node::set_color(Colors new_color) {
+    color = new_color;
+}
+
