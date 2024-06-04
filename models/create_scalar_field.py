@@ -20,4 +20,4 @@ for node in nodes:
     # print(node)
     id, x, y, z = node.split(' ')
     y = float(y)
-    print(int(id), sin(y*20)*4, abs(sin(y*20)*4)+1, 0)
+    print(int(id), sin(y * 20) * 4, abs(sin(y * 20) * 4) + 1, 0)
