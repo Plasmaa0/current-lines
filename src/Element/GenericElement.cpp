@@ -12,7 +12,7 @@ Coords GenericElement::interpolate(const Node &node) const {
         return len;
     });
     std::transform(params.begin(), params.end(), params.begin(), [&total](double len) {
-        return len / total;
+        return 1 - len / total;
     });
     std::vector<Coords> weightedVectorField;
     std::transform(params.begin(), params.end(), nodes.cbegin(), std::back_inserter(weightedVectorField),

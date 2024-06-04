@@ -7,7 +7,7 @@
 int main() {
     // load mesh
     auto m = Mesh();
-    m.LoadFile("test-3.msh");
+    m.LoadFile("models/test-3.msh");
 
     const Mesh::BoundingBox &bBox = m.getBoundingBox();
     auto size_x = bBox.x_max() - bBox.x_min();
@@ -15,8 +15,8 @@ int main() {
 
     // get base point
 //    Coords coords = {-0.35, 0.145}; // FM
-//    Coords coords = {0.1, 0.05};//test, test-3
-    Coords coords = {0.045, 0.01};//ell
+    Coords coords = {0.1, 0.05};//test, test-3
+//    Coords coords = {0.045, 0.01};//ell
     // create current line generator
     CurrentLineGenerator gen(m);
     // generate current line
