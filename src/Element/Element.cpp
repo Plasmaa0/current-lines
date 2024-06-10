@@ -17,6 +17,7 @@ Element::Element(const std::vector<std::reference_wrapper<Node>> &nodes_p, uint 
 Element::Element(uint id_p, Element::Type type_p) : id(id_p),
                                                     type(type_p) {}
 
+// less, clockwise, https://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order
 struct NodeComparatorLess {
     Coords center;
 
@@ -25,7 +26,6 @@ struct NodeComparatorLess {
     bool operator()(const Node &first, const Node &second) const {
         auto &a = first.coords;
         auto &b = second.coords;
-        // less, clockwise, https://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order
         if (a.x - center.x >= 0 && b.x - center.x < 0)
             return true;
         if (a.x - center.x < 0 && b.x - center.x >= 0)
@@ -61,7 +61,8 @@ struct NodeComparatorGreater {
     }
 };
 
-void Element::sort_nodes() { // FIXME не универсально
+// FIXME не универсально
+void Element::sort_nodes() {
     auto nodes_i = static_cast<double>(nodes.size());
     auto center = std::accumulate(nodes.cbegin(), nodes.cend(), Coords{0, 0, 0},
                                   [nodes_i](Coords acc, const Node &node) {
@@ -70,30 +71,6 @@ void Element::sort_nodes() { // FIXME не универсально
                                   });
     std::sort(nodes.begin(), nodes.end(), NodeComparatorLess(center));
     return;
-    while (true) {
-        if (nodes[0].get().coords.x > nodes[1].get().coords.x) {
-            std::swap(nodes[0], nodes[1]);
-        }
-
-        if (nodes[0].get().coords.x == nodes[1].get().coords.x && nodes[0].get().coords.y < nodes[1].get().coords.y) {
-            std::swap(nodes[0], nodes[1]);
-        }
-
-        if (nodes[1].get().coords.y < nodes[2].get().coords.y) {
-            std::swap(nodes[1], nodes[2]);
-        }
-        if (nodes[2].get().coords.x < nodes[3].get().coords.x) {
-            std::swap(nodes[2], nodes[3]);
-        }
-        if (nodes[3].get().coords.y > nodes[0].get().coords.y) {
-            std::swap(nodes[3], nodes[0]);
-        }
-
-        if (nodes[0].get().coords.x <= nodes[1].get().coords.x && nodes[1].get().coords.y >= nodes[2].get().coords.y &&
-            nodes[2].get().coords.x >= nodes[3].get().coords.x && nodes[3].get().coords.y <= nodes[0].get().coords.y) {
-            break;
-        }
-    }
 }
 
 bool Element::operator==(const Element &other) const {
@@ -166,7 +143,8 @@ bool Element::contains_node(const Node &node) const {  // FIXME не униве�
     return contains_node_raycasting(node);
 }
 
-bool Element::contains_node_cross_product(const Node &node) const {  // FIXME не универсально
+// FIXME не универсально
+bool Element::contains_node_cross_product(const Node &node) const { 
     auto inRange = is_in_x_range(node) and is_in_y_range(node);
     if (not inRange)
         return false;
@@ -174,16 +152,11 @@ bool Element::contains_node_cross_product(const Node &node) const {  // FIXME н
         if (Line(nodes[i], nodes[i + 1]).findPosition(node) < 0)
             return false;
     return Line(nodes.back(), nodes.front()).findPosition(node) >= 0;
-//    return Line(nodes[0], nodes[1]).findPosition(node) >= 0.0 and
-//           Line(nodes[1], nodes[2]).findPosition(node) >= 0.0 and
-//           Line(nodes[2], nodes[3]).findPosition(node) >= 0.0 and
-//           Line(nodes[3], nodes[0]).findPosition(node) >= 0.0;
 }
 
+// ray-casting algorithm based on
+// https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
 bool Element::contains_node_raycasting(const Node &node) const {
-    // ray-casting algorithm based on
-    // https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
-
     auto &[x, y, z] = node.coords;
 
     auto inside = false;
