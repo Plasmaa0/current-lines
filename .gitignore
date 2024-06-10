@@ -3,3 +3,17 @@ cmake-build-debug
 .cache
 /current_lines
 /myresult.geo
+report-tex/current-lines
+report-tex/document.aux
+report-tex/document.bbl
+report-tex/document.bcf
+report-tex/document.blg
+report-tex/document.log
+report-tex/document.out
+report-tex/document.pdf
+report-tex/document.run.xml
+report-tex/document.synctex.gz
+report-tex/document.toc
+report-tex/practice.aux
+report-tex/results.aux
+report-tex/theory.aux
