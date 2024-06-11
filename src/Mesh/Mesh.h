@@ -1,7 +1,8 @@
 #pragma once
 
 #include <Geometry/Node.h>
-#include <Element/Element.h>
+#include <Geometry/BoundingBox.h>
+#include "Element/Common/Element.h"
 
 #include <vector>
 #include <string>
@@ -15,18 +16,6 @@ public:
         float version; // version of .msh format
         int file_type; // must be 0 ??
         int data_size; // size of float
-    };
-
-    struct BoundingBox {
-        std::pair<double, double> x_range; // min-max
-        std::pair<double, double> y_range; // min-max
-        [[nodiscard]] double x_min() const { return std::get<0>(x_range); }
-
-        [[nodiscard]] double x_max() const { return std::get<1>(x_range); }
-
-        [[nodiscard]] double y_min() const { return std::get<0>(y_range); }
-
-        [[nodiscard]] double y_max() const { return std::get<1>(y_range); }
     };
 
     struct NodeData {
@@ -44,17 +33,17 @@ public:
 
     [[nodiscard]] inline const BoundingBox &getBoundingBox() const { return boundingBox; }
 
-    [[nodiscard]] inline const std::vector<std::shared_ptr<Element>> &getElements() const { return elements; }
+    [[nodiscard]] inline const std::vector<std::shared_ptr<FE::Element>> &getElements() const { return elements; }
 
-    [[nodiscard]] std::optional<std::shared_ptr<Element>> findElementByNode(const Node &node_p) const;
+    [[nodiscard]] std::optional<std::shared_ptr<FE::Element>> findElementByNode(const Node &node_p) const;
 
 private:
     MeshFormat meshFormat;
     std::vector<Node> nodes;
-    std::vector<std::shared_ptr<Element>> elements;
+    std::vector<std::shared_ptr<FE::Element>> elements;
     NodeData nodeData;
     BoundingBox boundingBox;
-    std::unordered_map<uint, std::pair<Element::Type, uint>> elementTypeLUT;
+    std::unordered_map<uint, std::pair<FE::Element::Type, uint>> elementTypeLUT;
 
     void ParseMeshFormatLine(const std::string &line);
 

@@ -1,7 +1,7 @@
 #include "Mesh.h"
 
 #include <Utils/Nimpl.h>
-#include <Element/ElementFactory.h>
+#include "Element/Common/ElementFactory.h"
 
 #include <fstream>
 #include <sstream>
@@ -97,30 +97,30 @@ void Mesh::LoadFile(const std::string &filename) {
 }
 
 constexpr void Mesh::initializeElementTypeLUT() {
-    elementTypeLUT[2] = {Element::Type::Triangle, 3}; // 3 node triangle
-    elementTypeLUT[3] = {Element::Type::Quadrangle, 4}; // 4 node quadrangle
-    elementTypeLUT[4] = {Element::Type::Tetrahedron, 4}; // 4 node tetrahedron
-    elementTypeLUT[5] = {Element::Type::Hexahedron, 8}; // 8 node hexahedron
-    elementTypeLUT[6] = {Element::Type::Prism, 6}; // 6 node prism
-    elementTypeLUT[7] = {Element::Type::Pyramid, 5}; // 5 node pyramid
+    elementTypeLUT[2] = {FE::Element::Type::Triangle, 3}; // 3 node triangle
+    elementTypeLUT[3] = {FE::Element::Type::Quadrangle, 4}; // 4 node quadrangle
+    elementTypeLUT[4] = {FE::Element::Type::Tetrahedron, 4}; // 4 node tetrahedron
+    elementTypeLUT[5] = {FE::Element::Type::Hexahedron, 8}; // 8 node hexahedron
+    elementTypeLUT[6] = {FE::Element::Type::Prism, 6}; // 6 node prism
+    elementTypeLUT[7] = {FE::Element::Type::Pyramid, 5}; // 5 node pyramid
 
 }
 
 void Mesh::CalculateBoundingBox() {
-    boundingBox.x_range = {0, 0};
-    boundingBox.y_range = {0, 0};
+    boundingBox.xRange = {0, 0};
+    boundingBox.yRange = {0, 0};
     std::for_each(nodes.begin(), nodes.end(), [&](const Node &node) {
-        if (std::get<0>(boundingBox.x_range) > node.coords.x) {
-            std::get<0>(boundingBox.x_range) = node.coords.x;
+        if (std::get<0>(boundingBox.xRange) > node.coords.x) {
+            std::get<0>(boundingBox.xRange) = node.coords.x;
         }
-        if (std::get<0>(boundingBox.y_range) > node.coords.y) {
-            std::get<0>(boundingBox.y_range) = node.coords.y;
+        if (std::get<0>(boundingBox.yRange) > node.coords.y) {
+            std::get<0>(boundingBox.yRange) = node.coords.y;
         }
-        if (std::get<1>(boundingBox.x_range) < node.coords.x) {
-            std::get<1>(boundingBox.x_range) = node.coords.x;
+        if (std::get<1>(boundingBox.xRange) < node.coords.x) {
+            std::get<1>(boundingBox.xRange) = node.coords.x;
         }
-        if (std::get<1>(boundingBox.y_range) < node.coords.y) {
-            std::get<1>(boundingBox.y_range) = node.coords.y;
+        if (std::get<1>(boundingBox.yRange) < node.coords.y) {
+            std::get<1>(boundingBox.yRange) = node.coords.y;
         }
     });
 }
@@ -153,7 +153,7 @@ void Mesh::ParseElementsLine(const std::string &line) {
     uint type_id;
     iss >> type_id;
 //    uint nodes_to_get = 0;
-//    Element::Type elementType;
+//    FE::Type elementType;
     int number_of_tags = -1;
     iss >> number_of_tags;
     if (number_of_tags != 0) {
@@ -170,14 +170,14 @@ void Mesh::ParseElementsLine(const std::string &line) {
     }
     auto &[elementType, nodes_to_get] = elementTypeLUT[type_id];
     std::vector<std::reference_wrapper<Node>> elementNodes;
-//    std::cout << "Element size: " << nodes_to_get << " nodes." << std::endl;
+//    std::cout << "FE size: " << nodes_to_get << " nodes." << std::endl;
     for (int i = 0; i < nodes_to_get; ++i) {
         uint node_id;
         iss >> node_id;
         elementNodes.push_back(std::ref(nodes[node_id - 1]));
     }
 
-    elements.push_back(ElementFactory::createElement(elementNodes, elementID, elementType));
+    elements.push_back(FE::Factory::createElement(elementNodes, elementID, elementType));
 }
 
 void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
@@ -237,7 +237,7 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
     }
 }
 
-std::optional<std::shared_ptr<Element>> Mesh::findElementByNode(const Node &node_p) const {
+std::optional<std::shared_ptr<FE::Element>> Mesh::findElementByNode(const Node &node_p) const {
     for (const auto &element: elements) {
         if (element->contains_node(node_p)) {
             return std::ref(element);

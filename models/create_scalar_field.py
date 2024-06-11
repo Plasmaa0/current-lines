@@ -1,7 +1,7 @@
 index = 1
 go = False
 nodes = []
-with open('t1.msh', 'r') as f:
+with open('cylinder_tetrahedron.msh', 'r') as f:
     for line in f:
         if '$Nodes' in line:
             go = True
@@ -14,10 +14,21 @@ with open('t1.msh', 'r') as f:
 
 nodes.pop(0)
 # print(nodes)
-from math import sin
+from math import sin, cos
 
+print(f'''
+$NodeData
+1
+"Scalar"
+1
+0
+3
+0
+3
+{len(nodes)}''')
 for node in nodes:
     # print(node)
     id, x, y, z = node.split(' ')
-    y = float(y)
-    print(int(id), sin(y * 20) * 4, abs(sin(y * 20) * 4) + 1, 0)
+    x = float(x)
+    print(int(id), x+1, cos(x*10), sin(x*10))
+print('$EndNodeData')

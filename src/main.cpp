@@ -1,5 +1,6 @@
 #include <Mesh/Mesh.h>
 #include <CurrentLineGenerator/CurrentLineGenerator.h>
+#include <Geometry/Line.h>
 #include <iterator>
 #include <fstream>
 #include <iostream>
@@ -7,42 +8,36 @@
 int main() {
     // load mesh
     auto m = Mesh();
-    m.LoadFile("models/FM.msh");
+    m.LoadFile("models/cylinder_tetrahedron.msh");
 
-    const Mesh::BoundingBox &bBox = m.getBoundingBox();
+    auto &bBox = m.getBoundingBox();
     auto size_x = bBox.x_max() - bBox.x_min();
     auto size_y = bBox.y_max() - bBox.y_min();
 
     // get base point
-   Coords coords = {-0.35, 0.165}; // FM
-    // Coords coords = {0.1, 0.05};//test, test-3
-   // Coords coords = {0.045, 0.01};//ell
+//   Coords coords = {-0.35, 0.165}; // FM
+//     Coords coords = {0.1, 0.05};//test, test-3
+//    Coords coords = {0.01, 0.05};//t1
+    Coords coords = {0.01, 0.01, 0.01};//cylinder_tetrahedron
     // create current line generator
     CurrentLineGenerator gen(m);
     // generate current line
-    std::cout << "generating current line" << std::endl;
-    std::vector<Node> currentLine = gen.generate_current_line(coords);
-    std::cout << "current line generated, size = " << currentLine.size() << std::endl;
-    // for(int i = 0; i<currentLine.size(); ++i){
-    //     const auto& node = currentLine[i];
-    //     std::cout << node.id << ", " << node.coords.x << ", " << node.coords.y << ", " << node.coords.z << std::endl;
-    // }
+//    std::cout << "generating current line" << std::endl;
+//    CurrentLine currentLine = gen.generate_current_line(coords);
+//    std::cout << "current line generated, size = " << currentLine.size() << std::endl;
+//
+//    std::ofstream file("myresult.geo");
+//    currentLine.appendToFile(file);
 
-    std::ofstream file("myresult.geo");
-    if (not file.is_open()) {
-        throw std::invalid_argument("FILE NOT OPEN");
+    Coords cord1 = {0.01, -0.45, 0.01};//cylinder_tetrahedron
+    Coords cord2 = {0.01, 0.45, 0.01};//cylinder_tetrahedron
+    auto nLines = 50;
+    auto lines = gen.generate_current_lines(Line(Node(Node::INVALID_ID, cord1), Node(Node::INVALID_ID, cord2)), nLines);
+    std::ofstream file("myresults.geo");
+    uint offset = 0;
+    for (auto &currentLine: lines) {
+        currentLine.appendToFile(file, offset);
+        offset += currentLine.size();
     }
-    for (int i = 0; i < currentLine.size(); ++i) {
-        const auto &node = currentLine[i];
-        file << "Point(" << i + 1 << ") = {" << node.coords.x << ", " << node.coords.y << ", " << node.coords.z << ", "
-             << size_x << "};" << std::endl;
-    }
-    file << "Line(" << currentLine.size() << ") = {";
-    for (int i = 0; i < currentLine.size(); ++i) {
-        file << i + 1;
-        if (i != currentLine.size() - 1)
-            file << ", ";
-    }
-    file << "};";
     return 0;
 }
