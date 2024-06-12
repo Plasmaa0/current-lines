@@ -62,6 +62,10 @@ Coords operator*(Coords lhs, const Coords &rhs) {
     return lhs;
 }
 
+std::ostream & operator<<(std::ostream &os, const Coords &obj) {
+    return os << std::format("Coords({}, {}, {})", obj.x, obj.y, obj.z);
+}
+
 double Coords::dot(const Coords &rhs) const {
     return x * rhs.x + y * rhs.y + z * rhs.z;
 }

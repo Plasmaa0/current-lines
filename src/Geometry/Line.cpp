@@ -3,11 +3,12 @@
 #include <complex>
 
 Line::Line(const Node &A, const Node &B)
-        : first_point(A),
-          second_point(B),
-          coef_a(A.coords.y - B.coords.y),
-          coef_b(B.coords.x - A.coords.x),
-          coef_c(A.coords.x * B.coords.y - B.coords.x * A.coords.y) {}
+    : first_point(A),
+      second_point(B),
+      coef_a(A.coords.y - B.coords.y),
+      coef_b(B.coords.x - A.coords.x),
+      coef_c(A.coords.x * B.coords.y - B.coords.x * A.coords.y) {
+}
 
 bool Line::operator==(const Line &other) const {
     return first_point == other.first_point and second_point == other.second_point;
@@ -49,12 +50,12 @@ std::optional<Node> Line::linesIntersect(const Line &other) const {
         return std::nullopt;
     }
     // СЛАУ
-//    a1 * x + b1 * y = -c1 первая прямая
-//    a2 * x + b2 * y = -c2 вторая прямая
-// Метод Крамера
-//    det = a1 * b2 - a2 * b1
-//    d_x = -c1 * b2 + b1 * c2
-//    d_x = -a1 * c2 + c1 * a2
+    //    a1 * x + b1 * y = -c1 первая прямая
+    //    a2 * x + b2 * y = -c2 вторая прямая
+    // Метод Крамера
+    //    det = a1 * b2 - a2 * b1
+    //    d_x = -c1 * b2 + b1 * c2
+    //    d_x = -a1 * c2 + c1 * a2
 
     double det = coef_a * other.coef_b - other.coef_a * coef_b;
     double d_x = coef_b * other.coef_c - other.coef_b * coef_c;
@@ -66,3 +67,7 @@ std::optional<Node> Line::linesIntersect(const Line &other) const {
 }
 
 
+std::ostream &operator<<(std::ostream &os, const Line &obj) {
+    return os << std::format("Line({}-{}; {}x {}y {}=0)", obj.first_point, obj.second_point,
+                             obj.coef_a, obj.coef_b, obj.coef_c);
+}

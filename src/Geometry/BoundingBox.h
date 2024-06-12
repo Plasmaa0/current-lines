@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ostream>
 #include <tuple>
 
 struct BoundingBox {
@@ -22,5 +23,14 @@ struct BoundingBox {
 
     [[nodiscard]] inline double size_y() const { return y_max() - y_min(); }
 
+    friend std::ostream &operator<<(std::ostream &os, const BoundingBox &obj) {
+        return os << std::format("BoundingBox(x: [{}, {}], y: [{}, {}], z: [{}, {}])",
+                                 obj.x_min(), obj.x_max(),
+                                 obj.y_min(), obj.y_max(),
+                                 obj.z_min(), obj.z_max());
+    }
+
     [[nodiscard]] inline double size_z() const { return z_max() - z_min(); }
 };
+
+DEFINE_FORMATTER(BoundingBox)

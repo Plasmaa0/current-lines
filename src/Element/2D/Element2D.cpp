@@ -3,11 +3,10 @@
 namespace FE::Planar {
     // FIXME не универсально
     bool Element2D::contains_node_cross_product(const Node &node) const {
-
         auto inRange = is_in_x_range(node) and is_in_y_range(node);
         if (not inRange)
             return false;
-        for (int i = 0; i < nodes.size() - 1; ++i)
+        for (std::vector<std::reference_wrapper<Node> >::size_type i = 0; i < nodes.size() - 1; ++i)
             if (Line(nodes[i], nodes[i + 1]).findPosition(node) < 0)
                 return false;
         return Line(nodes.back(), nodes.front()).findPosition(node) >= 0;

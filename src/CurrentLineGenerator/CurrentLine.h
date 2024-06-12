@@ -3,6 +3,7 @@
 #include <Geometry/Node.h>
 #include <vector>
 #include <fstream>
+#include <ostream>
 
 class CurrentLine {
 public:
@@ -18,4 +19,8 @@ private:
     static uint lineIDIncremental;
 
     void updateColors() const;
+
+    friend std::ostream &operator<<(std::ostream &os, const CurrentLine &obj);
 };
+
+DEFINE_FORMATTER(CurrentLine)

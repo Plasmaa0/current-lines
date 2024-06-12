@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ostream>
 #include <Geometry/Node.h>
 
 class Plane {
@@ -8,6 +9,10 @@ public:
 
     [[nodiscard]] double findPosition(const Node &node) const;
 
+    friend std::ostream &operator<<(std::ostream &os, const Plane &obj);
+
 private:
     double A, B, C, D; // Ax+By+Cz+D=0
 };
+
+DEFINE_FORMATTER(Plane)

@@ -13,7 +13,7 @@ void CurrentLine::appendToFile(std::ofstream &file, uint offset) const {
     }
     updateColors();
 //    Color {r,g,b}{Point(id) = {x, y, z, 1};}
-    for (int i = 0; i < points.size(); ++i) {
+    for (std::vector<Node>::size_type i = 0; i < points.size(); ++i) {
         const auto &node = points[i];
         file << "Color {"
              << static_cast<int>(node.color.getR()) << ", "
@@ -25,7 +25,7 @@ void CurrentLine::appendToFile(std::ofstream &file, uint offset) const {
     }
     file << "Line(" << CurrentLine::lineIDIncremental << ") = {";
     ++CurrentLine::lineIDIncremental;
-    for (int i = 0; i < points.size(); ++i) {
+    for (std::vector<Node>::size_type i = 0; i < points.size(); ++i) {
         file << i + 1 + offset;
         if (i != points.size() - 1)
             file << ", ";
@@ -79,3 +79,6 @@ void CurrentLine::updateColors() const {
     }
 }
 
+std::ostream & operator<<(std::ostream &os, const CurrentLine &obj) {
+    return os << std::format("CurrentLine(size={})", obj.points.size());
+}

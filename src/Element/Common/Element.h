@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <functional>
 #include <optional>
+#include <ostream>
 
 namespace FE {
     class Element {
@@ -22,7 +23,7 @@ namespace FE {
             Pyramid,
         };
 
-        Element(const std::vector<std::reference_wrapper<Node>> &nodes_p, uint id_p, Type type_p);
+        Element(const std::vector<std::reference_wrapper<Node> > &nodes_p, uint id_p, Type type_p);
 
         Element(uint id_p, Type type_p);
 
@@ -45,11 +46,15 @@ namespace FE {
         // наивная интерполяция на основе вычисления расстояния до вершин
         [[nodiscard]] virtual Coords interpolate(const Node &node) const;
 
+        friend std::ostream &operator<<(std::ostream &os, const Element &obj) {
+            return os << std::format("Element(id={},nodes={})", obj.id, obj.nodes.size());
+        }
+
     protected:
         uint id;
         Type type;
         // skip tags
-        std::vector<std::reference_wrapper<Node>> nodes;
+        std::vector<std::reference_wrapper<Node> > nodes;
 
         BoundingBox boundingBox;
 
@@ -69,3 +74,5 @@ namespace FE {
         [[nodiscard]] double find_smallest_z() const;
     };
 }
+
+DEFINE_FORMATTER(FE::Element)

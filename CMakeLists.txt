@@ -13,7 +13,8 @@ add_library(current_lines-utils STATIC
         src/Utils/Nimpl.h
         src/Utils/Nimpl.cpp
         src/Utils/Logger.h
-        src/Utils/Logger.cpp)
+        src/Utils/Logger.cpp
+        src/Utils/Formatter.h)
 target_include_directories(current_lines-utils PRIVATE src)
 
 

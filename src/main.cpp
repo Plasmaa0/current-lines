@@ -13,15 +13,11 @@ int main() {
     auto m = Mesh();
     m.LoadFile("models/cylinder_tetrahedron.msh");
 
-    auto &bBox = m.getBoundingBox();
-    auto size_x = bBox.x_max() - bBox.x_min();
-    auto size_y = bBox.y_max() - bBox.y_min();
-
     // get base point
     // Coords coords = {-0.35, 0.165}; // FM
     // Coords coords = {0.1, 0.05};//test, test-3
     // Coords coords = {0.01, 0.05};//t1
-    Coords coords = {0.01, 0.01, 0.01}; //cylinder_tetrahedron
+    // Coords coords = {0.01, 0.01, 0.01}; //cylinder_tetrahedron
     // create current line generator
     CurrentLineGenerator gen(m);
     // generate current line

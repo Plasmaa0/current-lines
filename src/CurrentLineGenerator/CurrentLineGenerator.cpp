@@ -18,7 +18,7 @@ CurrentLine CurrentLineGenerator::generate_current_line(const Coords &baseCoords
     CurrentLine currentLine;
     if (not currentElement.has_value()) {
         std::cout << "base node not found" << std::endl;
-        return std::move(currentLine);
+        return currentLine;
     }
     std::cout << "draw loop" << std::endl;
     uint64_t linesCounter = 0;
@@ -47,7 +47,7 @@ CurrentLine CurrentLineGenerator::generate_current_line(const Coords &baseCoords
 
         linesCounter += 1;
     }
-    return std::move(currentLine);
+    return currentLine;
 }
 
 uint64_t CurrentLineGenerator::getLinesCounterLimit() const {
@@ -72,5 +72,10 @@ std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(const Line
                    [this](const Coords &basePoint) {
                        return generate_current_line(basePoint);
                    });
-    return std::move(currentLines);
+    return currentLines;
+}
+
+std::ostream & operator<<(std::ostream &os, const CurrentLineGenerator &obj) {
+    return os << std::format("CurrentLineGenerator({}, Points={}, Precision={})", obj.mesh,
+                             obj.POINTS_AMOUT_MULTIPLIER, obj.STEP_PRECISION);
 }

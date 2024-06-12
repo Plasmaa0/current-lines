@@ -11,3 +11,7 @@ void VectorField::set_coords(const Coords &coords_p) {
 bool VectorField::operator==(const VectorField &other) const {
     return coords==other.coords;
 }
+
+std::ostream & operator<<(std::ostream &os, const VectorField &obj) {
+    return os << std::format("VectorField({},{})", obj.coords, obj.coords_normalize);
+}

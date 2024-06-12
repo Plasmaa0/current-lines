@@ -32,3 +32,7 @@ double Plane::findPosition(const Node &node) const {
     // Определить положение точки относительно плоскости
     return A * x + B * y + C * z + D;
 }
+
+std::ostream & operator<<(std::ostream &os, const Plane &obj) {
+    return os << std::format("Plane({}x {}y {}z {}=0)", obj.A, obj.B, obj.C, obj.D);
+}

@@ -6,19 +6,19 @@
 #include <numeric>
 
 namespace FE {
-    Element::Element(const std::vector<std::reference_wrapper<Node>> &nodes_p, uint id_p, Type type_p) : nodes(nodes_p),
-                                                                                                         id(id_p),
-                                                                                                         type(type_p) {
+    Element::Element(const std::vector<std::reference_wrapper<Node> > &nodes_p, const uint id_p,
+                     Type type_p) : id(id_p), type(type_p), nodes(nodes_p) {
         updateBoundingBox();
     }
 
     Element::Element(uint id_p, Element::Type type_p) : id(id_p),
-                                                        type(type_p) {}
+                                                        type(type_p) {
+    }
 
     bool Element::operator==(const Element &other) const {
         if (nodes.size() != other.nodes.size())
             return false;
-        for (int i = 0; i < nodes.size(); ++i) {
+        for (std::vector<std::reference_wrapper<Node>>::size_type i = 0; i < nodes.size(); ++i) {
             if (nodes[i].get() != other.nodes[i].get())
                 return false;
         }
@@ -105,7 +105,7 @@ namespace FE {
                            return Coords{x * p, y * p, z * p};
                        });
         auto res = std::accumulate(weightedVectorField.cbegin(), weightedVectorField.cend(), Coords{0, 0},
-                                   [](Coords accumulator, const Coords &vector) {
+                                   [](const Coords &accumulator, const Coords &vector) {
                                        auto &[acc_x, acc_y, acc_z] = accumulator;
                                        auto &[vec_x, vec_y, vec_z] = vector;
                                        return Coords{acc_x + vec_x, acc_y + vec_y, acc_z + vec_z};

@@ -1,5 +1,6 @@
 #pragma once
-
+#include <ostream>
+#include <Utils/Formatter.h>
 
 struct Coords {
     Coords();
@@ -66,7 +67,10 @@ struct Coords {
     [[nodiscard]] Coords get_normalize() const;
 
     [[nodiscard]] double squareLen() const;
+
     [[nodiscard]] double len() const;
+
+    friend std::ostream &operator<<(std::ostream &os, const Coords &obj);
 
     double x;
     double y;
@@ -76,3 +80,5 @@ struct Coords {
 
 // смешанное произведение <a, b, c> = (a, [b, c])
 double ScalarTripleProduct(const Coords &a, const Coords &b, const Coords &c);
+
+DEFINE_FORMATTER(Coords)

@@ -6,6 +6,7 @@
 #include <Utils/Color.h>
 
 #include <cstdlib>
+#include <ostream>
 
 class Node {
 public:
@@ -23,6 +24,9 @@ public:
 
     void set_coords(const Coords &new_coords);
 
+    friend std::ostream &operator<<(std::ostream &os, const Node &obj);
+
     void set_color(const Color &new_color);
 };
 
+DEFINE_FORMATTER(Node)

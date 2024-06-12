@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <optional>
 #include <memory>
+#include <ostream>
 
 class Mesh {
 public:
@@ -22,10 +23,12 @@ public:
         std::vector<std::string> strTags;
         std::vector<double> realTags;
         std::vector<int> intTags;
+
         struct NodeValue {
             uint node_id;
             std::vector<double> values;
         };
+
         std::vector<NodeValue> nodeValues;
     };
 
@@ -33,17 +36,18 @@ public:
 
     [[nodiscard]] inline const BoundingBox &getBoundingBox() const { return boundingBox; }
 
-    [[nodiscard]] inline const std::vector<std::shared_ptr<FE::Element>> &getElements() const { return elements; }
+    [[nodiscard]] inline const std::vector<std::shared_ptr<FE::Element> > &getElements() const { return elements; }
 
-    [[nodiscard]] std::optional<std::shared_ptr<FE::Element>> findElementByNode(const Node &node_p) const;
+    [[nodiscard]] std::optional<std::shared_ptr<FE::Element> > findElementByNode(const Node &node_p) const;
 
 private:
     MeshFormat meshFormat;
     std::vector<Node> nodes;
-    std::vector<std::shared_ptr<FE::Element>> elements;
+    std::vector<std::shared_ptr<FE::Element> > elements;
     NodeData nodeData;
     BoundingBox boundingBox;
-    std::unordered_map<uint, std::pair<FE::Element::Type, uint>> elementTypeLUT;
+    mutable std::unordered_map<uint, std::pair<FE::Element::Type, uint> > elementTypeLUT;
+    mutable std::unordered_map<FE::Element::Type, std::string> elementTypeNameLUT;
 
     void ParseMeshFormatLine(const std::string &line);
 
@@ -55,5 +59,9 @@ private:
 
     void CalculateBoundingBox();
 
-    constexpr void initializeElementTypeLUT();
+    constexpr void initializeLUTs() const;
+
+    friend std::ostream &operator<<(std::ostream &os, const Mesh &obj);
 };
+
+DEFINE_FORMATTER(Mesh)

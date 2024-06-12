@@ -3,6 +3,7 @@
 #include <Geometry/Node.h>
 
 #include <optional>
+#include <ostream>
 
 class Line {
     // https://ru.wikipedia.org/wiki/Прямая#Уравнение_прямой,_проходящей_через_две_точки_на_вещественной_плоскости
@@ -24,6 +25,8 @@ public:
     [[nodiscard]] bool isParallel(const Line &other) const;
 
     [[nodiscard]] std::optional<Node> linesIntersect(const Line &other) const;
+
+    friend std::ostream &operator<<(std::ostream &os, const Line &obj);
 };
 
-
+DEFINE_FORMATTER(Line)

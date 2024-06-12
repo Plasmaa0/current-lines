@@ -20,7 +20,7 @@ enum class InputType {
 };
 
 void Mesh::LoadFile(const std::string &filename) {
-    initializeElementTypeLUT();
+    initializeLUTs();
     std::cout << "loading file: " << filename << std::endl;
     std::ifstream file(filename);
     if (not file.is_open()) {
@@ -31,7 +31,7 @@ void Mesh::LoadFile(const std::string &filename) {
     std::string line;
     std::vector<std::string> NodeDataBlock;
     while (std::getline(file, line)) {
-//        std::istringstream iss(line);
+        //        std::istringstream iss(line);
 
         // update input mode
         if (line.starts_with('$')) {
@@ -92,11 +92,11 @@ void Mesh::LoadFile(const std::string &filename) {
     std::cout << "Calculating bounding box" << std::endl;
     CalculateBoundingBox();
     std::cout << "Bounding Box X from " << boundingBox.x_min() << " to " << boundingBox.x_max() << std::endl <<
-              "Y from " << boundingBox.y_min() << " to " << boundingBox.y_max() << std::endl;
+            "Y from " << boundingBox.y_min() << " to " << boundingBox.y_max() << std::endl;
     std::cout << "file: " << filename << " loaded" << std::endl;
 }
 
-constexpr void Mesh::initializeElementTypeLUT() {
+constexpr void Mesh::initializeLUTs() const {
     elementTypeLUT[2] = {FE::Element::Type::Triangle, 3}; // 3 node triangle
     elementTypeLUT[3] = {FE::Element::Type::Quadrangle, 4}; // 4 node quadrangle
     elementTypeLUT[4] = {FE::Element::Type::Tetrahedron, 4}; // 4 node tetrahedron
@@ -104,6 +104,12 @@ constexpr void Mesh::initializeElementTypeLUT() {
     elementTypeLUT[6] = {FE::Element::Type::Prism, 6}; // 6 node prism
     elementTypeLUT[7] = {FE::Element::Type::Pyramid, 5}; // 5 node pyramid
 
+    elementTypeNameLUT[FE::Element::Type::Triangle] = "Triangle";
+    elementTypeNameLUT[FE::Element::Type::Quadrangle] = "Quadrangle";
+    elementTypeNameLUT[FE::Element::Type::Tetrahedron] = "Tetrahedron";
+    elementTypeNameLUT[FE::Element::Type::Hexahedron] = "Hexahedron";
+    elementTypeNameLUT[FE::Element::Type::Prism] = "Prism";
+    elementTypeNameLUT[FE::Element::Type::Pyramid] = "Pyramid";
 }
 
 void Mesh::CalculateBoundingBox() {
@@ -152,8 +158,8 @@ void Mesh::ParseElementsLine(const std::string &line) {
     iss >> elementID;
     uint type_id;
     iss >> type_id;
-//    uint nodes_to_get = 0;
-//    FE::Type elementType;
+    //    uint nodes_to_get = 0;
+    //    FE::Type elementType;
     int number_of_tags = -1;
     iss >> number_of_tags;
     if (number_of_tags != 0) {
@@ -161,7 +167,7 @@ void Mesh::ParseElementsLine(const std::string &line) {
         for (int i = 0; i < number_of_tags; ++i) {
             iss >> tag;
         }
-//        NOT_IMPLEMENTED;
+        //        NOT_IMPLEMENTED;
     }
 
     if (not elementTypeLUT.contains(type_id)) {
@@ -169,9 +175,9 @@ void Mesh::ParseElementsLine(const std::string &line) {
         NOT_IMPLEMENTED;
     }
     auto &[elementType, nodes_to_get] = elementTypeLUT[type_id];
-    std::vector<std::reference_wrapper<Node>> elementNodes;
-//    std::cout << "FE size: " << nodes_to_get << " nodes." << std::endl;
-    for (int i = 0; i < nodes_to_get; ++i) {
+    std::vector<std::reference_wrapper<Node> > elementNodes;
+    //    std::cout << "FE size: " << nodes_to_get << " nodes." << std::endl;
+    for (uint i = 0; i < nodes_to_get; ++i) {
         uint node_id;
         iss >> node_id;
         elementNodes.push_back(std::ref(nodes[node_id - 1]));
@@ -204,7 +210,7 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
     auto pop_str = [&NodeDataBlock]() {
         auto str = NodeDataBlock.back();
         NodeDataBlock.pop_back();
-        return std::move(str);
+        return str;
     };
     auto pop_int = [&NodeDataBlock]() {
         auto num = std::stoi(NodeDataBlock.back());
@@ -237,7 +243,7 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
     }
 }
 
-std::optional<std::shared_ptr<FE::Element>> Mesh::findElementByNode(const Node &node_p) const {
+std::optional<std::shared_ptr<FE::Element> > Mesh::findElementByNode(const Node &node_p) const {
     for (const auto &element: elements) {
         if (element->contains_node(node_p)) {
             return std::ref(element);
@@ -245,4 +251,9 @@ std::optional<std::shared_ptr<FE::Element>> Mesh::findElementByNode(const Node &
     }
     std::cout << "current cell not found" << std::endl << std::flush;
     return std::nullopt;
+}
+
+std::ostream &operator<<(std::ostream &os, const Mesh &obj) {
+    return os << std::format("Mesh(Nodes={}, Elements={}, Type={}, {})", obj.nodes.size(), obj.elements.size(),
+                             obj.elementTypeNameLUT[obj.elements[0]->getType()], obj.getBoundingBox());
 }
