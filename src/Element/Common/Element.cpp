@@ -1,7 +1,5 @@
 #include "Element.h"
 
-#include "Geometry/Line.h"
-
 #include <algorithm>
 #include <numeric>
 

@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Element/Common/Element.h"
-#include "Geometry/Coords.h"
-#include "Geometry/Node.h"
+#include <Geometry/Geometry.h>
 
 namespace FE::Volumetric {
     class Tetrahedron : public Element {

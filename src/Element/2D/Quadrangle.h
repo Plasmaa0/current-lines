@@ -4,9 +4,7 @@
 #include <optional>
 
 #include "Element/2D/Element2D.h"
-#include "Geometry/Coords.h"
-#include "Geometry/CrossPoints.h"
-#include "Geometry/Node.h"
+#include <Geometry/Geometry.h>
 #include <vector>
 #include <cstdlib>
 #include <functional>

@@ -1,6 +1,5 @@
 #include <numeric>
 #include <algorithm>
-#include "Geometry/Line.h"
 #include "Quadrangle.h"
 
 namespace FE::Planar {

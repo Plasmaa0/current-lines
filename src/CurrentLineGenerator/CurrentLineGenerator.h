@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ostream>
-#include <Geometry/Node.h>
+#include <Geometry/Geometry.h>
 #include <Mesh/Mesh.h>
 #include <CurrentLineGenerator/CurrentLine.h>
 #include <Element/Common/Element.h>

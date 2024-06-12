@@ -1,7 +1,6 @@
 #pragma once
 
-#include <Geometry/Node.h>
-#include <Geometry/BoundingBox.h>
+#include <Geometry/Geometry.h>
 #include "Element/Common/Element.h"
 
 #include <vector>

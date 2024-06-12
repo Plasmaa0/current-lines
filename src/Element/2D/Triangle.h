@@ -2,8 +2,7 @@
 
 #include "Element/2D/Element2D.h"
 
-#include "Geometry/Coords.h"
-#include "Geometry/Node.h"
+#include <Geometry/Geometry.h>
 
 namespace FE::Planar {
 

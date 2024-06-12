@@ -1,7 +1,5 @@
 #include "CurrentLineGenerator.h"
 
-#include <Geometry/VectorField.h>
-
 #include <iostream>
 
 #include "Utils/Logger.h"

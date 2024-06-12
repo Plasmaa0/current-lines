@@ -1,5 +1,4 @@
 #include "Hexahedron.h"
-#include <Geometry/Plane.h>
 
 
 namespace FE::Volumetric {

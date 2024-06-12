@@ -1,10 +1,6 @@
 #pragma once
 
-#include "Geometry/Node.h"
-#include "Geometry/CrossPoints.h"
-#include "Geometry/Line.h"
-#include "Geometry/Coords.h"
-#include "Geometry/BoundingBox.h"
+#include <Geometry/Geometry.h>
 #include <vector>
 #include <cstdlib>
 #include <functional>
