@@ -5,6 +5,7 @@
 #include "Element/2D/Quadrangle.h"
 
 #include "Element/3D/Tetrahedron.h"
+#include "Element/3D/Hexahedron.h"
 
 namespace FE {
     std::shared_ptr<Element>
@@ -18,8 +19,8 @@ namespace FE {
             case (Element::Type::Tetrahedron):
                 return std::make_shared<Volumetric::Tetrahedron>(nodes_p, id_p, type_p);
             case (Element::Type::Hexahedron):
-                NOT_IMPLEMENTED;
-                break; //return std::make_shared<HexahedronElement>(nodes_p, id_p, type_p);
+//                std::cout << "hexahedron implementation uses generic interpolation algorithm" << std::endl;
+                return std::make_shared<Volumetric::Hexahedron>(nodes_p, id_p, type_p);
             case (Element::Type::Prism):
                 NOT_IMPLEMENTED;
                 break;  //return std::make_shared<PrismElement>(nodes_p, id_p, type_p);
