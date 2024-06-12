@@ -68,6 +68,5 @@ std::optional<Node> Line::linesIntersect(const Line &other) const {
 
 
 std::ostream &operator<<(std::ostream &os, const Line &obj) {
-    return os << std::format("Line({}-{}; {}x {}y {}=0)", obj.first_point, obj.second_point,
-                             obj.coef_a, obj.coef_b, obj.coef_c);
+    return os << std::format("Line(from {}, to {})", obj.first_point, obj.second_point);
 }

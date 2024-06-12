@@ -14,7 +14,6 @@ namespace FE::Planar {
         baryCords.x = ((b.y - c.y) * (vec.x - c.x) + (c.x - b.x) * (vec.y - c.y)) * den;
         baryCords.y = ((c.y - a.y) * (vec.x - c.x) + (a.x - c.x) * (vec.y - c.y)) * den;
         baryCords.z = 1 - baryCords.x - baryCords.y;
-        std::cout << baryCords.x << ' ' << baryCords.y << ' ' << baryCords.z << ' ' << std::endl;
 
         auto res = (nodes[0].get().vector_field.coords * baryCords.x) + (nodes[1].get().vector_field.coords * baryCords.y) + (nodes[2].get().vector_field.coords * baryCords.z);
         return res;

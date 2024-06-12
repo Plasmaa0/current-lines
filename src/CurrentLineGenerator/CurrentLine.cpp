@@ -1,6 +1,8 @@
 #include "CurrentLine.h"
 #include <iostream>
 
+#include "Utils/Logger.h"
+
 uint CurrentLine::lineIDIncremental = 1;
 
 void CurrentLine::appendNode(const Node &node) {
@@ -9,8 +11,10 @@ void CurrentLine::appendNode(const Node &node) {
 
 void CurrentLine::appendToFile(std::ofstream &file, uint offset) const {
     if (not file.is_open()) {
+        LOG_ERROR("File not open whine saving CurrentLine");
         throw std::invalid_argument("FILE NOT OPEN");
     }
+    LOG_TRACE("Saving {} to file", *this);
     updateColors();
 //    Color {r,g,b}{Point(id) = {x, y, z, 1};}
     for (std::vector<Node>::size_type i = 0; i < points.size(); ++i) {

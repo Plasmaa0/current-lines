@@ -11,6 +11,8 @@
 #include <iostream>
 #include <iterator>
 
+#include "Utils/Logger.h"
+
 enum class InputType {
     None,
     MeshFormat,
@@ -21,7 +23,7 @@ enum class InputType {
 
 void Mesh::LoadFile(const std::string &filename) {
     initializeLUTs();
-    std::cout << "loading file: " << filename << std::endl;
+    LOG_INFO("Loading file '{}'", filename);
     std::ifstream file(filename);
     if (not file.is_open()) {
         throw std::invalid_argument("FILE NOT OPEN");
@@ -37,19 +39,19 @@ void Mesh::LoadFile(const std::string &filename) {
         if (line.starts_with('$')) {
             if (line.starts_with("$End")) {
                 input_type = InputType::None;
-                std::cout << "done" << std::endl;
+                LOG_INFO("done");
             } else if (line.starts_with("$MeshFormat")) {
                 input_type = InputType::MeshFormat;
-                std::cout << "parsing MeshFormat ... ";
+                LOG_INFO("parsing MeshFormat ... ");
             } else if (line.starts_with("$Nodes")) {
                 input_type = InputType::Nodes;
-                std::cout << "parsing Nodes ... ";
+                LOG_INFO("parsing Nodes ... ");
             } else if (line.starts_with("$Elements")) {
                 input_type = InputType::Elements;
-                std::cout << "parsing Elements ... ";
+                LOG_INFO("parsing Elements ... ");
             } else if (line.starts_with("$NodeData")) {
                 input_type = InputType::NodeData;
-                std::cout << "parsing NodeData ... ";
+                LOG_INFO("parsing NodeData ... ");
             }
             continue;
         }
@@ -87,13 +89,12 @@ void Mesh::LoadFile(const std::string &filename) {
                 std::unreachable();
         }
     }
-    std::cout << "NodeData parsing" << std::endl;
+    LOG_INFO("NodeData parsing");
     ParseNodeData(std::move(NodeDataBlock));
-    std::cout << "Calculating bounding box" << std::endl;
+    LOG_INFO("Calculating bounding box");
     CalculateBoundingBox();
-    std::cout << "Bounding Box X from " << boundingBox.x_min() << " to " << boundingBox.x_max() << std::endl <<
-            "Y from " << boundingBox.y_min() << " to " << boundingBox.y_max() << std::endl;
-    std::cout << "file: " << filename << " loaded" << std::endl;
+    LOG_INFO("Calculated bounding box: {}", getBoundingBox());
+    LOG_INFO("File '{}' loaded", filename);
 }
 
 constexpr void Mesh::initializeLUTs() const {
@@ -115,6 +116,7 @@ constexpr void Mesh::initializeLUTs() const {
 void Mesh::CalculateBoundingBox() {
     boundingBox.xRange = {0, 0};
     boundingBox.yRange = {0, 0};
+    boundingBox.zRange = {0, 0};
     std::for_each(nodes.begin(), nodes.end(), [&](const Node &node) {
         if (std::get<0>(boundingBox.xRange) > node.coords.x) {
             std::get<0>(boundingBox.xRange) = node.coords.x;
@@ -122,11 +124,17 @@ void Mesh::CalculateBoundingBox() {
         if (std::get<0>(boundingBox.yRange) > node.coords.y) {
             std::get<0>(boundingBox.yRange) = node.coords.y;
         }
+        if (std::get<0>(boundingBox.zRange) > node.coords.z) {
+            std::get<0>(boundingBox.zRange) = node.coords.z;
+        }
         if (std::get<1>(boundingBox.xRange) < node.coords.x) {
             std::get<1>(boundingBox.xRange) = node.coords.x;
         }
         if (std::get<1>(boundingBox.yRange) < node.coords.y) {
             std::get<1>(boundingBox.yRange) = node.coords.y;
+        }
+        if (std::get<1>(boundingBox.zRange) < node.coords.z) {
+            std::get<1>(boundingBox.zRange) = node.coords.z;
         }
     });
 }
@@ -176,7 +184,6 @@ void Mesh::ParseElementsLine(const std::string &line) {
     }
     auto &[elementType, nodes_to_get] = elementTypeLUT[type_id];
     std::vector<std::reference_wrapper<Node> > elementNodes;
-    //    std::cout << "FE size: " << nodes_to_get << " nodes." << std::endl;
     for (uint i = 0; i < nodes_to_get; ++i) {
         uint node_id;
         iss >> node_id;
@@ -249,7 +256,7 @@ std::optional<std::shared_ptr<FE::Element> > Mesh::findElementByNode(const Node 
             return std::ref(element);
         }
     }
-    std::cout << "current cell not found" << std::endl << std::flush;
+    LOG_WARNING("current cell not found");
     return std::nullopt;
 }
 
