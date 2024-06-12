@@ -7,6 +7,17 @@
 #include "Utils/Logger.h"
 
 
+void saveCurrentLines(const std::vector<CurrentLine> &lines, const char *filename) {
+    LOG_INFO("Saving {} current lines to file '{}'", lines.size(), filename);
+    std::ofstream file(filename);
+    uint offset = 0;
+    for (auto &currentLine: lines) {
+        currentLine.appendToFile(file, offset);
+        offset += currentLine.size();
+    }
+    LOG_INFO("Finished saving");
+}
+
 int main() {
     Logger::init();
     Logger::setLogLevel(LogLevel::INFO);
@@ -37,13 +48,7 @@ int main() {
     auto lines = gen.generate_current_lines(Line(Node(Node::INVALID_ID, cord1), Node(Node::INVALID_ID, cord2)), nLines);
     LOG_INFO("Finished generating, got {} current lines", lines.size());
     auto filename = "myresults.geo";
-    LOG_INFO("Saving to file '{}'", filename);
-    std::ofstream file(filename);
-    uint offset = 0;
-    for (auto &currentLine: lines) {
-        currentLine.appendToFile(file, offset);
-        offset += currentLine.size();
-    }
+    saveCurrentLines(lines, filename);
     LOG_INFO("Exit");
     return 0;
 }
