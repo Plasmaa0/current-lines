@@ -33,7 +33,8 @@ public:
     ~Logger() { logFile.close(); }
 
 private:
-    Logger(): isInitialized(true), isFile(false) {}
+    Logger(): isInitialized(true), isFile(false) {
+    }
 
     explicit Logger(const std::string &filename);
 
