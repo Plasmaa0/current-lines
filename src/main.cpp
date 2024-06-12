@@ -4,8 +4,11 @@
 #include <iterator>
 #include <fstream>
 #include <iostream>
+#include "Utils/Logger.h"
+
 
 int main() {
+    Logger::init();
     // load mesh
     auto m = Mesh();
     m.LoadFile("models/cylinder_tetrahedron.msh");
