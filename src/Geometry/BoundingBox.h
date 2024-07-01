@@ -3,6 +3,8 @@
 #include <ostream>
 #include <tuple>
 
+#include "Utils/Formatter.h"
+
 struct BoundingBox {
     std::pair<double, double> xRange; // min-max
     std::pair<double, double> yRange; // min-max
@@ -33,4 +35,4 @@ struct BoundingBox {
     [[nodiscard]] inline double size_z() const { return z_max() - z_min(); }
 };
 
-DEFINE_FORMATTER(BoundingBox)
+DEFINE_FORMATTER(BoundingBox);
