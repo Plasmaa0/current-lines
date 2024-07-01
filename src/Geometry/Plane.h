@@ -9,6 +9,8 @@ public:
 
     [[nodiscard]] double findPosition(const Node &node) const;
 
+    [[nodiscard]] Coords normal() const;
+
     friend std::ostream &operator<<(std::ostream &os, const Plane &obj);
 
 private:
