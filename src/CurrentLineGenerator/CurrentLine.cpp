@@ -16,25 +16,27 @@ void CurrentLine::appendToFile(std::ofstream &file, uint offset) const {
     }
     LOG_TRACE("Saving {} to file", *this);
     updateColors();
-//    Color {r,g,b}{Point(id) = {x, y, z, 1};}
+    //    Color {r,g,b}{Point(id) = {x, y, z, 1};}
     for (std::vector<Node>::size_type i = 0; i < points.size(); ++i) {
         const auto &node = points[i];
         file << "Color {"
-             << static_cast<int>(node.color.getR()) << ", "
-             << static_cast<int>(node.color.getG()) << ", "
-             << static_cast<int>(node.color.getB()) << "}{";
+                << static_cast<int>(node.color.getR()) << ", "
+                << static_cast<int>(node.color.getG()) << ", "
+                << static_cast<int>(node.color.getB()) << "}{";
         file << "Point(" << i + 1 + offset << ") = {" << node.coords.x << ", " << node.coords.y << ", " << node.coords.z
-             << ", "
-             << 1 << "};}" << std::endl;
+                << ", "
+                << 1 << "};}" << std::endl;
     }
-    file << "Line(" << CurrentLine::lineIDIncremental << ") = {";
-    ++CurrentLine::lineIDIncremental;
-    for (std::vector<Node>::size_type i = 0; i < points.size(); ++i) {
-        file << i + 1 + offset;
-        if (i != points.size() - 1)
-            file << ", ";
+    if (points.size() >= 2) {
+        file << "Line(" << CurrentLine::lineIDIncremental << ") = {";
+        for (std::vector<Node>::size_type i = 0; i < points.size(); ++i) {
+            file << i + 1 + offset;
+            if (i != points.size() - 1)
+                file << ", ";
+        }
+        file << "};" << std::endl << std::flush;
+        ++CurrentLine::lineIDIncremental;
     }
-    file << "};" << std::endl << std::flush;
 }
 
 // вычислить f(x), где f такая, что:
@@ -83,6 +85,6 @@ void CurrentLine::updateColors() const {
     }
 }
 
-std::ostream & operator<<(std::ostream &os, const CurrentLine &obj) {
+std::ostream &operator<<(std::ostream &os, const CurrentLine &obj) {
     return os << std::format("CurrentLine(size={})", obj.points.size());
 }
