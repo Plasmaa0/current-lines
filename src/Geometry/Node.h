@@ -10,7 +10,7 @@
 
 class Node {
 public:
-    static const uint INVALID_ID = 0;
+    static constexpr uint INVALID_ID = 0;
     uint id;
     VectorField vector_field;
     Coords coords;
