@@ -65,7 +65,7 @@ void Mesh::LoadFile(const std::string &filename) {
             case InputType::Nodes:
                 // if line does not contain space therefore it's first of '$Nodes' block with total number of nodes
                 // and total number of nodes will be calculated during node parsing, so we'll skip first line
-                if (line.contains(' ')) {
+                if (line.contains(' ') or line.contains('\t')) {
                     ParseNodesLine(line);
                 }
                 break;
@@ -73,7 +73,7 @@ void Mesh::LoadFile(const std::string &filename) {
             case InputType::Elements:
                 // if line does not contain space therefore it's first of '$Nodes' block with total number of nodes
                 // and total number of nodes will be calculated during node parsing, so we'll skip first line
-                if (line.contains(' ')) {
+                if (line.contains(' ') or line.contains('\t')) {
                     ParseElementsLine(line);
                 }
                 break;
@@ -89,6 +89,7 @@ void Mesh::LoadFile(const std::string &filename) {
                 std::unreachable();
         }
     }
+    LOG_INFO("Got {} nodes", nodes.size());
     LOG_INFO("NodeData parsing");
     ParseNodeData(std::move(NodeDataBlock));
     LOG_INFO("Calculating bounding box");
@@ -102,15 +103,15 @@ constexpr void Mesh::initializeLUTs() const {
     elementTypeLUT[3] = {FE::Element::Type::Quadrangle, 4}; // 4 node quadrangle
     elementTypeLUT[4] = {FE::Element::Type::Tetrahedron, 4}; // 4 node tetrahedron
     elementTypeLUT[5] = {FE::Element::Type::Hexahedron, 8}; // 8 node hexahedron
-    elementTypeLUT[6] = {FE::Element::Type::Prism, 6}; // 6 node prism
-    elementTypeLUT[7] = {FE::Element::Type::Pyramid, 5}; // 5 node pyramid
+    // elementTypeLUT[6] = {FE::Element::Type::Prism, 6}; // 6 node prism
+    // elementTypeLUT[7] = {FE::Element::Type::Pyramid, 5}; // 5 node pyramid
 
     elementTypeNameLUT[FE::Element::Type::Triangle] = "Triangle";
     elementTypeNameLUT[FE::Element::Type::Quadrangle] = "Quadrangle";
     elementTypeNameLUT[FE::Element::Type::Tetrahedron] = "Tetrahedron";
     elementTypeNameLUT[FE::Element::Type::Hexahedron] = "Hexahedron";
-    elementTypeNameLUT[FE::Element::Type::Prism] = "Prism";
-    elementTypeNameLUT[FE::Element::Type::Pyramid] = "Pyramid";
+    // elementTypeNameLUT[FE::Element::Type::Prism] = "Prism";
+    // elementTypeNameLUT[FE::Element::Type::Pyramid] = "Pyramid";
 }
 
 void Mesh::CalculateBoundingBox() {
@@ -179,7 +180,7 @@ void Mesh::ParseElementsLine(const std::string &line) {
     }
 
     if (not elementTypeLUT.contains(type_id)) {
-        return;
+        return; // TODO скип неподдерживаемых типов элементов
         NOT_IMPLEMENTED;
     }
     auto &[elementType, nodes_to_get] = elementTypeLUT[type_id];
@@ -187,7 +188,7 @@ void Mesh::ParseElementsLine(const std::string &line) {
     for (uint i = 0; i < nodes_to_get; ++i) {
         uint node_id;
         iss >> node_id;
-        elementNodes.push_back(std::ref(nodes[node_id - 1]));
+        elementNodes.push_back(std::ref(nodes[node_id])); // TODO делать [node_id-1] если нумерация от 1
     }
 
     elements.push_back(FE::Factory::createElement(elementNodes, elementID, elementType));
@@ -246,7 +247,8 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
         std::copy(std::istream_iterator<double>(iss), std::istream_iterator<double>(), std::back_inserter(values));
         // nodeData.nodeValues.push_back(NodeData::NodeValue(node_id, std::move(values)));
         // TODO: проверить точно ли values всего 3 штуки всегда?
-        nodes[node_id - 1].vector_field.set_coords(Coords(values[0], values[1], values[2]));
+        // LOG_DEBUG("node id: {}", node_id);
+        nodes[node_id].vector_field.coords = Coords(values[0], values[1], values[2]); // TODO делать [node_id-1] если нумерация от 1
     }
 }
 
