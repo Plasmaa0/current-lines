@@ -188,7 +188,7 @@ void Mesh::ParseElementsLine(const std::string &line) {
     for (uint i = 0; i < nodes_to_get; ++i) {
         uint node_id;
         iss >> node_id;
-        elementNodes.push_back(std::ref(nodes[node_id])); // TODO делать [node_id-1] если нумерация от 1
+        elementNodes.push_back(std::ref(getNodeById(node_id))); // TODO делать [node_id-1] если нумерация от 1
     }
 
     elements.push_back(FE::Factory::createElement(elementNodes, elementID, elementType));
@@ -248,7 +248,8 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
         // nodeData.nodeValues.push_back(NodeData::NodeValue(node_id, std::move(values)));
         // TODO: проверить точно ли values всего 3 штуки всегда?
         // LOG_DEBUG("node id: {}", node_id);
-        nodes[node_id].vector_field.coords = Coords(values[0], values[1], values[2]); // TODO делать [node_id-1] если нумерация от 1
+        getNodeById(node_id).vector_field.coords = Coords(values[0], values[1], values[2]);
+        // TODO делать [node_id-1] если нумерация от 1
     }
 }
 
@@ -259,6 +260,38 @@ std::optional<std::shared_ptr<FE::Element> > Mesh::findElementByNode(const Node 
         }
     }
     LOG_WARNING("current cell not found");
+    return std::nullopt;
+}
+
+const Node &Mesh::getNodeById(uint p_id) const noexcept {
+    auto node = std::ranges::lower_bound(nodes, Node(p_id, {}),
+                                         [](const Node &a, const Node &b) { return a.id < b.id; });
+    if (node == nodes.cend()) {
+        LOG_ERROR("Не существует узла с id {}", p_id);
+        throw std::out_of_range(std::format("Не существует узла с id {}", p_id));
+    }
+    return std::ref(*node);
+}
+
+Node &Mesh::getNodeById(uint p_id) noexcept {
+    auto node = std::ranges::lower_bound(nodes, Node(p_id, {}),
+                                         [](const Node &a, const Node &b) { return a.id < b.id; });
+    if (node == nodes.end()) {
+        LOG_ERROR("Не существует узла с id {}", p_id);
+        throw std::out_of_range(std::format("Не существует узла с id {}", p_id));
+    }
+    return std::ref(*node);
+}
+
+std::optional<std::shared_ptr<FE::Element> > Mesh::getElementContainingNodeId(uint nodeId_p) const {
+    auto res = std::ranges::find_if(elements,
+                                    [nodeId_p](const std::shared_ptr<FE::Element> &element) {
+                                        const auto &nodes = element->getNodes();
+                                        return std::ranges::any_of(
+                                            nodes, [nodeId_p](const Node &node) { return node.id == nodeId_p; });
+                                    });
+    if (res != elements.cend())
+        return {*res};
     return std::nullopt;
 }
 

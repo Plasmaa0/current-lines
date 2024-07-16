@@ -9,7 +9,7 @@ void CurrentLine::appendNode(const Node &node) {
     points.push_back(node);
 }
 
-void CurrentLine::appendToFile(std::ofstream &file, uint offset) const {
+bool CurrentLine::appendToFile(std::ofstream &file, uint offset) const {
     if (not file.is_open()) {
         LOG_ERROR("File not open whine saving CurrentLine");
         throw std::invalid_argument("FILE NOT OPEN");
@@ -36,7 +36,9 @@ void CurrentLine::appendToFile(std::ofstream &file, uint offset) const {
         }
         file << "};" << std::endl << std::flush;
         ++CurrentLine::lineIDIncremental;
+        return true;
     }
+    return false;
 }
 
 // вычислить f(x), где f такая, что:

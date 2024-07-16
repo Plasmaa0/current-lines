@@ -13,10 +13,21 @@ CurrentLineGenerator::CurrentLineGenerator(const Mesh &mesh_p) : mesh(mesh_p), s
     //    dz = bBox.size_z() / STEP_PRECISION;
 }
 
-CurrentLine CurrentLineGenerator::generate_current_line(const Coords &baseCoords_p) {
+CurrentLine CurrentLineGenerator::generate_current_line(const Coords &baseCoords_p) const {
     LOG_INFO("Begin generating current line from {}", baseCoords_p);
     auto currentNode = Node(Node::INVALID_ID, baseCoords_p);
-    auto currentElement = mesh.findElementByNode(currentNode);
+    return generate_current_line(currentNode);
+}
+
+CurrentLine CurrentLineGenerator::generate_current_line(const Node &baseNode_p,
+                                                        const std::optional<std::shared_ptr<FE::Element> > &
+                                                        baseElement_p) const {
+    LOG_INFO("Begin generating current line from {}", baseNode_p);
+    auto currentNode = baseNode_p;
+    // auto currentElement = baseElement_p;
+    // if (not currentElement.has_value())
+    //     currentElement = mesh.findElementByNode(currentNode);
+    auto currentElement = baseElement_p.or_else([&](){return mesh.findElementByNode(currentNode);});
     CurrentLine currentLine;
     if (not currentElement.has_value()) {
         LOG_ERROR("Base element not found");
@@ -34,7 +45,8 @@ CurrentLine CurrentLineGenerator::generate_current_line(const Coords &baseCoords
 
         // если новый КЭ не нашелся, то мы оказались за пределами модели
         if (not currentElement.has_value()) {
-            LOG_INFO("Current line out of mesh bounds {}, current position {}", mesh.getBoundingBox(), currentNode.coords);
+            LOG_INFO("Current line out of mesh bounds {}, current position {}", mesh.getBoundingBox(),
+                     currentNode.coords);
             break;
         }
 
@@ -77,6 +89,17 @@ std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(const Line
                        return generate_current_line(basePoint);
                    });
     LOG_INFO("Finished drawing {} current lines", linesCount);
+    return currentLines;
+}
+
+std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(std::set<uint32_t> nodeIds_p) const {
+    std::vector<CurrentLine> currentLines;
+    for (const auto &nodeId: nodeIds_p) {
+        const auto &node = mesh.getNodeById(nodeId);
+        std::optional<std::shared_ptr<FE::Element>> containingElement = mesh.getElementContainingNodeId(nodeId);
+        auto currentLine = generate_current_line(node, containingElement);
+        currentLines.push_back(currentLine);
+    }
     return currentLines;
 }
 

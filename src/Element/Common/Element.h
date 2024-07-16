@@ -42,6 +42,10 @@ namespace FE {
         // наивная интерполяция на основе вычисления расстояния до вершин
         [[nodiscard]] virtual Coords interpolate(const Node &node) const;
 
+        [[nodiscard]] const std::vector<std::reference_wrapper<Node> > &getNodes() const {
+            return nodes;
+        }
+
         friend std::ostream &operator<<(std::ostream &os, const Element &obj) {
             return os << std::format("Element(id={},nodes={})", obj.id, obj.nodes.size());
         }

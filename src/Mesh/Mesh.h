@@ -9,6 +9,7 @@
 #include <optional>
 #include <memory>
 #include <ostream>
+#include <set>
 
 class Mesh {
 public:
@@ -38,6 +39,12 @@ public:
     [[nodiscard]] inline const std::vector<std::shared_ptr<FE::Element> > &getElements() const { return elements; }
 
     [[nodiscard]] std::optional<std::shared_ptr<FE::Element> > findElementByNode(const Node &node_p) const;
+
+    [[nodiscard]] const Node &getNodeById(uint p_id) const noexcept;
+
+    [[nodiscard]] Node &getNodeById(uint p_id) noexcept;
+
+    std::optional<std::shared_ptr<FE::Element>> getElementContainingNodeId(uint nodeId_p) const;
 
 private:
     MeshFormat meshFormat;

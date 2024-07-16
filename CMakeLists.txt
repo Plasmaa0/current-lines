@@ -7,6 +7,12 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 add_compile_options(-Wall -Wextra -Wpedantic)
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
 
 add_library(current_lines-utils STATIC
         src/Utils/Color.h
@@ -74,10 +80,16 @@ add_library(current_lines-generator STATIC
 target_link_libraries(current_lines-generator PRIVATE current_lines-mesh current_lines-element current_lines-geometry current_lines-utils)
 target_include_directories(current_lines-generator PRIVATE src)
 
+add_library(current_lines-loader STATIC
+        src/Loaders/Loader.cpp
+        src/Loaders/Loader.h)
+add_subdirectory(src/Loaders/bmf)
+target_include_directories(current_lines-loader PRIVATE src src/Loaders)
+target_link_libraries(current_lines-loader bmf)
 
 add_executable(current_lines src/main.cpp)
 target_include_directories(current_lines PRIVATE src)
 
 target_link_libraries(current_lines
         current_lines-generator
-        current_lines-mesh)
+        current_lines-mesh current_lines-loader bmf)
