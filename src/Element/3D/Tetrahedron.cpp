@@ -1,24 +1,12 @@
 #include "Tetrahedron.h"
-
-int sign(auto x) {
-    return x > 0 ? 1 : -1;
-}
-
-bool SameSide(const Coords &v1, const Coords &v2, const Coords &v3, const Coords &v4, const Coords &p) {
-    auto normal = (v2 - v1).cross(v3 - v1);
-    auto dotV4 = normal.dot(v4 - v1);
-    auto dotP = normal.dot(p - v1);
-    // return dotV4 * dotP > 0;
-    return sign(dotV4) == sign(dotP);
-}
-
+#include <Utils/Algorithms.h>
 
 namespace FE::Volumetric {
     bool Tetrahedron::contains_node(const Node &node) const {
-        auto &v1 = nodes[0].get().coords;
-        auto &v2 = nodes[1].get().coords;
-        auto &v3 = nodes[2].get().coords;
-        auto &v4 = nodes[3].get().coords;
+        const auto &v1 = nodes[0].get().coords;
+        const auto &v2 = nodes[1].get().coords;
+        const auto &v3 = nodes[2].get().coords;
+        const auto &v4 = nodes[3].get().coords;
         return SameSide(v1, v2, v3, v4, node.coords) &&
                SameSide(v2, v3, v4, v1, node.coords) &&
                SameSide(v3, v4, v1, v2, node.coords) &&

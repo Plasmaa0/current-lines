@@ -20,7 +20,8 @@ add_library(current_lines-utils STATIC
         src/Utils/Nimpl.cpp
         src/Utils/Logger.h
         src/Utils/Logger.cpp
-        src/Utils/Formatter.h)
+        src/Utils/Formatter.h
+        src/Utils/Algorithms.h)
 target_include_directories(current_lines-utils PRIVATE src)
 
 
@@ -59,6 +60,8 @@ add_library(current_lines-element STATIC
         src/Element/3D/Tetrahedron.h
         src/Element/3D/Hexahedron.cpp
         src/Element/3D/Hexahedron.h
+        src/Element/3D/Prism.cpp
+        src/Element/3D/Prism.h
 )
 target_link_libraries(current_lines-element PRIVATE current_lines-geometry current_lines-utils)
 target_include_directories(current_lines-element PRIVATE src)

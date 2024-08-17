@@ -103,14 +103,14 @@ constexpr void Mesh::initializeLUTs() const {
     elementTypeLUT[3] = {FE::Element::Type::Quadrangle, 4}; // 4 node quadrangle
     elementTypeLUT[4] = {FE::Element::Type::Tetrahedron, 4}; // 4 node tetrahedron
     elementTypeLUT[5] = {FE::Element::Type::Hexahedron, 8}; // 8 node hexahedron
-    // elementTypeLUT[6] = {FE::Element::Type::Prism, 6}; // 6 node prism
+    elementTypeLUT[6] = {FE::Element::Type::Prism, 6}; // 6 node prism
     // elementTypeLUT[7] = {FE::Element::Type::Pyramid, 5}; // 5 node pyramid
 
     elementTypeNameLUT[FE::Element::Type::Triangle] = "Triangle";
     elementTypeNameLUT[FE::Element::Type::Quadrangle] = "Quadrangle";
     elementTypeNameLUT[FE::Element::Type::Tetrahedron] = "Tetrahedron";
     elementTypeNameLUT[FE::Element::Type::Hexahedron] = "Hexahedron";
-    // elementTypeNameLUT[FE::Element::Type::Prism] = "Prism";
+    elementTypeNameLUT[FE::Element::Type::Prism] = "Prism";
     // elementTypeNameLUT[FE::Element::Type::Pyramid] = "Pyramid";
 }
 
@@ -180,6 +180,7 @@ void Mesh::ParseElementsLine(const std::string &line) {
     }
 
     if (not elementTypeLUT.contains(type_id)) {
+        LOG_WARNING("Encountered unsupported element type. id={}", type_id);
         return; // TODO скип неподдерживаемых типов элементов
         NOT_IMPLEMENTED;
     }

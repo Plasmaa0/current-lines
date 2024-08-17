@@ -25,8 +25,8 @@ public:
     [[nodiscard]] std::vector<CurrentLine> generate_current_lines(std::set<uint32_t> nodeIds_p) const;
 
 private:
-    const uint64_t STEP_PRECISION = 2;
-    const uint64_t POINTS_AMOUT_MULTIPLIER = 50;
+    const uint64_t STEP_PRECISION = 1;
+    const uint64_t POINTS_AMOUT_MULTIPLIER = 20;
     const Mesh &mesh;
     Coords size;
     //    double dx, dy, dz;
