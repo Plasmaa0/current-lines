@@ -27,7 +27,7 @@ CurrentLine CurrentLineGenerator::generate_current_line(const Node &baseNode_p,
     // auto currentElement = baseElement_p;
     // if (not currentElement.has_value())
     //     currentElement = mesh.findElementByNode(currentNode);
-    auto currentElement = baseElement_p.or_else([&](){return mesh.findElementByNode(currentNode);});
+    auto currentElement = baseElement_p.or_else([&]() { return mesh.findElementByNode(currentNode); });
     CurrentLine currentLine;
     if (not currentElement.has_value()) {
         LOG_ERROR("Base element not found");
@@ -84,21 +84,40 @@ std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(const Line
     });
     LOG_INFO("Calculated {} base points, begin drawing", linesCount);
     std::vector<CurrentLine> currentLines;
-    std::transform(basePoints.cbegin(), basePoints.cend(), std::back_inserter(currentLines),
-                   [this](const Coords &basePoint) {
-                       return generate_current_line(basePoint);
-                   });
+    // std::transform(basePoints.cbegin(), basePoints.cend(), std::back_inserter(currentLines),
+    //                [this](const Coords &basePoint) {
+    //                    return generate_current_line(basePoint);
+    //                });
+#pragma omp parallel
+#pragma omp single
+    {
+        for (const auto &basePoint: basePoints) {
+#pragma omp task
+            {
+                auto currentLine = generate_current_line(basePoint);
+                currentLines.push_back(currentLine);
+            }
+        }
+    }
     LOG_INFO("Finished drawing {} current lines", linesCount);
     return currentLines;
 }
 
-std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(std::set<uint32_t> nodeIds_p) const {
+std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(const std::set<uint32_t> &nodeIds_p) const {
     std::vector<CurrentLine> currentLines;
-    for (const auto &nodeId: nodeIds_p) {
-        const auto &node = mesh.getNodeById(nodeId);
-        std::optional<std::shared_ptr<FE::Element>> containingElement = mesh.getElementContainingNodeId(nodeId);
-        auto currentLine = generate_current_line(node, containingElement);
-        currentLines.push_back(currentLine);
+#pragma omp parallel
+#pragma omp single
+    {
+        for (const auto &nodeId: nodeIds_p) {
+#pragma omp task
+            {
+                const auto &node = mesh.getNodeById(nodeId);
+                std::optional<std::shared_ptr<FE::Element> > containingElement = mesh.
+                        getElementContainingNodeId(nodeId);
+                auto currentLine = generate_current_line(node, containingElement);
+                currentLines.push_back(currentLine);
+            }
+        }
     }
     return currentLines;
 }
