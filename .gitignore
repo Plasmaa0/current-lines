@@ -18,3 +18,8 @@ report-tex/practice.aux
 report-tex/results.aux
 report-tex/theory.aux
 /myresults.geo
+boundary_converted.msh
+callgrind.out.*
+result.geo
+results.geo
+results_*.geo
