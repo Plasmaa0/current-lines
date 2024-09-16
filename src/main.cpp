@@ -1,3 +1,4 @@
+#include <chrono>
 #include <Mesh/Mesh.h>
 #include <CurrentLineGenerator/CurrentLineGenerator.h>
 #include <Geometry/Geometry.h>
@@ -17,11 +18,21 @@ void saveCurrentLines(const std::vector<CurrentLine> &lines, const char *filenam
     uint savedCount = 0;
     for (auto &currentLine: lines) {
         if(currentLine.appendToFile(file, offset)) {
-            offset += currentLine.size();
+            offset += currentLine.size()+1;
             ++savedCount;
+            LOG_INFO("{}", savedCount);
         }
     }
-    LOG_INFO("Saved {} current lines", savedCount);
+    LOG_INFO("Saved {} current lines, average length {} points", savedCount, offset/savedCount);
+}
+
+std::string CurrentDate()
+{
+    std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+    char buf[100] = {0};
+    std::strftime(buf, sizeof(buf), "%Y-%m-%d_%H-%M-%S", std::localtime(&now));
+    return buf;
 }
 
 int main() {
@@ -62,11 +73,11 @@ int main() {
     LOG_INFO("Generating");
     // auto lines = gen.generate_current_lines(Line(Node(Node::INVALID_ID, cord1), Node(Node::INVALID_ID, cord2)), nLines);
     std::set<uint32_t> ids;
-    std::ranges::for_each(m.getBoudaryDomainNodesIds(0),[&](const auto &id){ids.insert(id);});
+    std::ranges::for_each(m.getBoudaryDomainNodesIds(0)|std::views::stride(2),[&](const auto &id){ids.insert(id);});
     auto lines = gen.generate_current_lines(ids);
     LOG_INFO("Finished generating, got {} current lines", lines.size());
-    auto filename = "results.geo";
-    saveCurrentLines(lines, filename);
+    auto filename = "results_"+CurrentDate()+".geo";
+    saveCurrentLines(lines, filename.c_str());
     LOG_INFO("Exit");
     return 0;
 }
