@@ -22,7 +22,7 @@ public:
 
     [[nodiscard]] std::vector<CurrentLine> generate_current_lines(const Line &lineSegment_p, uint linesCount);
 
-    [[nodiscard]] std::vector<CurrentLine> generate_current_lines(std::set<uint32_t> nodeIds_p) const;
+    [[nodiscard]] std::vector<CurrentLine> generate_current_lines(const std::set<uint32_t>& nodeIds_p) const;
 
 private:
     const uint64_t STEP_PRECISION = 1;

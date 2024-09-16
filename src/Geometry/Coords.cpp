@@ -18,12 +18,11 @@ void Coords::set_coords(double x_p, double y_p, double z_p) {
 }
 
 Coords Coords::get_normalize() const {
-    double length = std::sqrt(x * x + y * y + z * z);
+    double length = len();
     return {x / length, y / length, z / length};
 }
 
 Coords::Coords() : Coords(0, 0, 0) {
-
 }
 
 Coords &Coords::operator+=(const Coords &rhs) {
@@ -34,8 +33,7 @@ Coords &Coords::operator+=(const Coords &rhs) {
 }
 
 Coords operator+(Coords lhs, const Coords &rhs) {
-    lhs += rhs;
-    return lhs;
+    return {lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z};
 }
 
 Coords &Coords::operator-=(const Coords &rhs) {
@@ -46,8 +44,7 @@ Coords &Coords::operator-=(const Coords &rhs) {
 }
 
 Coords operator-(Coords lhs, const Coords &rhs) {
-    lhs -= rhs;
-    return lhs;
+    return {lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z};
 }
 
 Coords &Coords::operator*=(const Coords &rhs) {
@@ -58,11 +55,10 @@ Coords &Coords::operator*=(const Coords &rhs) {
 }
 
 Coords operator*(Coords lhs, const Coords &rhs) {
-    lhs *= rhs;
-    return lhs;
+    return {lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z};
 }
 
-std::ostream & operator<<(std::ostream &os, const Coords &obj) {
+std::ostream &operator<<(std::ostream &os, const Coords &obj) {
     return os << std::format("Coords({}, {}, {})", obj.x, obj.y, obj.z);
 }
 
@@ -71,11 +67,7 @@ double Coords::dot(const Coords &rhs) const {
 }
 
 Coords Coords::cross(const Coords &rhs) const {
-    Coords t;
-    t.x = y * rhs.z - z * rhs.y;
-    t.y = z * rhs.x - x * rhs.z;
-    t.z = x * rhs.y - y * rhs.x;
-    return t;
+    return {y * rhs.z - z * rhs.y, z * rhs.x - x * rhs.z, x * rhs.y - y * rhs.x};
 }
 
 Coords &Coords::operator=(const Coords &other) {
@@ -97,9 +89,11 @@ Coords &Coords::operator=(Coords &&other) noexcept {
     return *this;
 }
 
-Coords::Coords(const Coords &other) : x(other.x), y(other.y), z(other.z) {}
+Coords::Coords(const Coords &other) : x(other.x), y(other.y), z(other.z) {
+}
 
-Coords::Coords(Coords &&other) noexcept: x(other.x), y(other.y), z(other.z) {}
+Coords::Coords(Coords &&other) noexcept: x(other.x), y(other.y), z(other.z) {
+}
 
 double Coords::squareLen() const {
     return x * x + y * y + z * z;

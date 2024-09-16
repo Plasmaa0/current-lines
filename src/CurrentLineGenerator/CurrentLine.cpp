@@ -14,6 +14,7 @@ bool CurrentLine::appendToFile(std::ofstream &file, uint offset) const {
         LOG_ERROR("File not open whine saving CurrentLine");
         throw std::invalid_argument("FILE NOT OPEN");
     }
+    if (size() > 10000) return false;
     LOG_TRACE("Saving {} to file", *this);
     updateColors();
     //    Color {r,g,b}{Point(id) = {x, y, z, 1};}
