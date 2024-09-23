@@ -3,6 +3,7 @@
 #include <ostream>
 #include <tuple>
 
+#include "Coords.h"
 #include "Utils/Formatter.h"
 
 struct BoundingBox {
@@ -25,6 +26,8 @@ struct BoundingBox {
 
     [[nodiscard]] inline double size_y() const { return y_max() - y_min(); }
 
+    [[nodiscard]] inline double size_z() const { return z_max() - z_min(); }
+
     friend std::ostream &operator<<(std::ostream &os, const BoundingBox &obj) {
         return os << std::format("BoundingBox(x: [{}, {}], y: [{}, {}], z: [{}, {}])",
                                  obj.x_min(), obj.x_max(),
@@ -32,7 +35,23 @@ struct BoundingBox {
                                  obj.z_min(), obj.z_max());
     }
 
-    [[nodiscard]] inline double size_z() const { return z_max() - z_min(); }
+    BoundingBox operator+(const BoundingBox &other) const {
+        return BoundingBox{
+            std::pair(std::min(x_min(), other.x_min()), std::max(x_max(), other.x_max())),
+            std::pair(std::min(y_min(), other.y_min()), std::max(y_max(), other.y_max())),
+            std::pair(std::min(z_min(), other.z_min()), std::max(z_max(), other.z_max())),
+        };
+    }
+
+    BoundingBox &operator+=(const BoundingBox &other) {
+        return *this = *this + other;
+    }
+
+    bool contains(const Coords &point) const {
+        return x_min() <= point.x && point.x <= x_max() &&
+               y_min() <= point.y && point.y <= y_max() &&
+               z_min() <= point.z && point.z <= z_max();
+    }
 };
 
 DEFINE_FORMATTER(BoundingBox);

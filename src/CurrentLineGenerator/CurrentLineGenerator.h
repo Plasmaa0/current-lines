@@ -12,7 +12,7 @@
 
 class CurrentLineGenerator {
 public:
-    explicit CurrentLineGenerator(const Mesh &mesh_p);
+    explicit CurrentLineGenerator(const Mesh &mesh_p, uint64_t precision = 1000);
 
     [[nodiscard]] CurrentLine generate_current_line(const Coords &baseCoords_p) const;
 
@@ -25,7 +25,7 @@ public:
     [[nodiscard]] std::vector<CurrentLine> generate_current_lines(const std::set<uint32_t>& nodeIds_p) const;
 
 private:
-    const uint64_t STEP_PRECISION = 1;
+    uint64_t STEP_PRECISION = 1000;
     const uint64_t POINTS_AMOUT_MULTIPLIER = 20;
     const Mesh &mesh;
     Coords size;

@@ -82,7 +82,7 @@ void printSurfaceMesh(const Mesh& p_mesh, const NodalFields& p_fields) {
     uint8_t dimension = metric.dimension;
     std::set<uint32_t> boundary_nodes = getALLLL(p_mesh);
     auto rand_node = p_mesh.data().fes_nodes[123];
-    std::cout << p_mesh.data().nodes_coords[rand_node+1] << ','<< p_mesh.data().nodes_coords[rand_node+2] << ','<< p_mesh.data().nodes_coords[rand_node+3] << std::endl;
+//    std::cout << p_mesh.data().nodes_coords[rand_node+1] << ','<< p_mesh.data().nodes_coords[rand_node+2] << ','<< p_mesh.data().nodes_coords[rand_node+3] << std::endl;
     auto x = p_mesh.data().fes_nodes;
     std::ostringstream sout;
     sout << "$MeshFormat\n" <<
@@ -90,7 +90,7 @@ void printSurfaceMesh(const Mesh& p_mesh, const NodalFields& p_fields) {
             "$EndMeshFormat\n" <<
             "$Nodes\n" <<
             boundary_nodes.size() << std::endl;
-    std::cout << "получено элементов: "<< boundary_nodes.size()<<std::endl;
+//    std::cout << "получено элементов: "<< boundary_nodes.size()<<std::endl;
     for (const auto& node: boundary_nodes) {
         sout << node << '\t' <<
             nodes_coords[node * dimension] << '\t' <<
@@ -116,7 +116,7 @@ void printSurfaceMesh(const Mesh& p_mesh, const NodalFields& p_fields) {
         region = regions + boundary_domains_regions_ids[i];
         domain_nodes_begin = bes_nodes + region->fes_nodes_offset +
             (bes_num_limits[i] - region->first_fe) * region->nodes_count;
-        std::cout << +region->nodes_count << std::endl;
+//        std::cout << +region->nodes_count << std::endl;
         if (region->nodes_count == 6) { // треугольники
             bes_count = bes_num_limits[i + 1] - bes_num_limits[i];
             for (Apos j = 0; j < bes_count; ++j) {

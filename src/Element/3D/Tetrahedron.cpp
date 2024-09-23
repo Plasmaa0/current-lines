@@ -2,15 +2,26 @@
 #include <Utils/Algorithms.h>
 
 namespace FE::Volumetric {
+    bool Tetrahedron::planeEquationMethod(const Node &node) const {
+        auto side1 = Plane(nodes[0].get(), nodes[1].get(), nodes[2].get());
+        auto side2 = Plane(nodes[1].get(), nodes[3].get(), nodes[2].get());
+        auto side3 = Plane(nodes[3].get(), nodes[0].get(), nodes[2].get());
+        auto side4 = Plane(nodes[1].get(), nodes[0].get(), nodes[3].get());
+        return side1.findPosition(node) >= 0 and
+               side2.findPosition(node) >= 0 and
+               side3.findPosition(node) >= 0 and
+               side4.findPosition(node) >= 0;
+    }
+
     bool Tetrahedron::contains_node(const Node &node) const {
         const auto &v1 = nodes[0].get().coords;
         const auto &v2 = nodes[1].get().coords;
         const auto &v3 = nodes[2].get().coords;
         const auto &v4 = nodes[3].get().coords;
-        return SameSide(v1, v2, v3, v4, node.coords) &&
+        return (SameSide(v1, v2, v3, v4, node.coords) &&
                SameSide(v2, v3, v4, v1, node.coords) &&
                SameSide(v3, v4, v1, v2, node.coords) &&
-               SameSide(v4, v1, v2, v3, node.coords);
+               SameSide(v4, v1, v2, v3, node.coords)) or planeEquationMethod(node);
     }
 
     Coords Tetrahedron::interpolate(const Node &p) const {

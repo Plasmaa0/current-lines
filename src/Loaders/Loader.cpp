@@ -14,7 +14,7 @@ void BmfSmrMesh::convertToGmsh(const std::string &p_bmf_filename, const std::str
     bmf::SMRFileLoader fields_loader;
     fields_loader.setFileName(p_smr_filename);
     fields_loader.replace(mesh, fields, 1);
-    LOG_INFO("Boundary domain count: {}", mesh.metric().boundary_domains_count);
+    LOG_DEBUG("Boundary domain count: {}", mesh.metric().boundary_domains_count);
     printSurfaceMesh(mesh, fields, p_tmp_filename);
     printBoundaryMesh(mesh, fields, "boundary_" + p_tmp_filename);
 }

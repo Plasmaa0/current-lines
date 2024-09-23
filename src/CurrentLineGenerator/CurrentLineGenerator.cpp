@@ -4,7 +4,8 @@
 
 #include "Utils/Logger.h"
 
-CurrentLineGenerator::CurrentLineGenerator(const Mesh &mesh_p) : mesh(mesh_p), size(0, 0, 0) {
+CurrentLineGenerator::CurrentLineGenerator(const Mesh &mesh_p, uint64_t precision) : mesh(mesh_p), size(0, 0, 0),
+    STEP_PRECISION(precision) {
     auto &bBox = mesh.getBoundingBox();
     size = {bBox.size_x(), bBox.size_y(), bBox.size_z()};
     LOG_INFO("Initialized {}", *this);
@@ -14,7 +15,7 @@ CurrentLineGenerator::CurrentLineGenerator(const Mesh &mesh_p) : mesh(mesh_p), s
 }
 
 CurrentLine CurrentLineGenerator::generate_current_line(const Coords &baseCoords_p) const {
-    LOG_INFO("Begin generating current line from {}", baseCoords_p);
+    LOG_DEBUG("Begin generating current line from {}", baseCoords_p);
     auto currentNode = Node(Node::INVALID_ID, baseCoords_p);
     return generate_current_line(currentNode);
 }
@@ -22,7 +23,7 @@ CurrentLine CurrentLineGenerator::generate_current_line(const Coords &baseCoords
 CurrentLine CurrentLineGenerator::generate_current_line(const Node &baseNode_p,
                                                         const std::optional<std::shared_ptr<FE::Element> > &
                                                         baseElement_p) const {
-    LOG_INFO("Begin generating current line from {}", baseNode_p);
+    LOG_TRACE("Begin generating current line from {}", baseNode_p);
     auto currentNode = baseNode_p;
     // auto currentElement = baseElement_p;
     // if (not currentElement.has_value())
@@ -30,10 +31,10 @@ CurrentLine CurrentLineGenerator::generate_current_line(const Node &baseNode_p,
     auto currentElement = baseElement_p.or_else([&]() { return mesh.findElementByNode(currentNode); });
     CurrentLine currentLine;
     if (not currentElement.has_value()) {
-        LOG_ERROR("Base element not found");
+        LOG_TRACE("Base element not found");
         return currentLine;
     }
-    LOG_INFO("Base element found {}, begin drawing", *currentElement->get());
+    LOG_TRACE("Base element found {}, begin drawing", *currentElement->get());
     uint64_t linesCounter = 0;
     const auto linesCounterLimit = getLinesCounterLimit();
     while (linesCounter < linesCounterLimit) {
@@ -45,8 +46,8 @@ CurrentLine CurrentLineGenerator::generate_current_line(const Node &baseNode_p,
 
         // если новый КЭ не нашелся, то мы оказались за пределами модели
         if (not currentElement.has_value()) {
-            LOG_INFO("Current line out of mesh bounds {}, current position {}", mesh.getBoundingBox(),
-                     currentNode.coords);
+            LOG_TRACE("Current line out of mesh bounds {}, current position {}", mesh.getBoundingBox(),
+                      currentNode.coords);
             break;
         }
 
@@ -59,7 +60,7 @@ CurrentLine CurrentLineGenerator::generate_current_line(const Node &baseNode_p,
 
         linesCounter += 1;
     }
-    LOG_INFO("Finished drawing current line. {}", currentLine);
+    LOG_TRACE("Finished drawing current line. {}", currentLine);
     return currentLine;
 }
 
@@ -71,7 +72,7 @@ uint64_t CurrentLineGenerator::getLinesCounterLimit() const {
 Coords CurrentLineGenerator::getElementStepSize(const std::shared_ptr<FE::Element> &elem) const {
     auto &bBox = elem->getBoundingBox();
     Coords res = {bBox.size_x(), bBox.size_y(), bBox.size_z()};
-    return res / STEP_PRECISION;
+    return res / STEP_PRECISION * 100.0;
 }
 
 std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(const Line &lineSegment_p, uint linesCount) {
@@ -88,6 +89,7 @@ std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(const Line
     //                [this](const Coords &basePoint) {
     //                    return generate_current_line(basePoint);
     //                });
+    std::mutex currentLinesMutex;
 #pragma omp parallel
 #pragma omp single
     {
@@ -95,7 +97,10 @@ std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(const Line
 #pragma omp task
             {
                 auto currentLine = generate_current_line(basePoint);
-                currentLines.push_back(currentLine);
+                if (currentLine.size() > 0) {
+                    std::lock_guard lock(currentLinesMutex);
+                    currentLines.push_back(currentLine);
+                }
             }
         }
     }
@@ -105,6 +110,7 @@ std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(const Line
 
 std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(const std::set<uint32_t> &nodeIds_p) const {
     std::vector<CurrentLine> currentLines;
+    std::mutex currentLinesMutex;
 #pragma omp parallel
 #pragma omp single
     {
@@ -115,7 +121,10 @@ std::vector<CurrentLine> CurrentLineGenerator::generate_current_lines(const std:
                 std::optional<std::shared_ptr<FE::Element> > containingElement = mesh.
                         getElementContainingNodeId(nodeId);
                 auto currentLine = generate_current_line(node, containingElement);
-                currentLines.push_back(currentLine);
+                if (currentLine.size() > 0) {
+                    std::lock_guard lock(currentLinesMutex);
+                    currentLines.push_back(currentLine);
+                }
             }
         }
     }

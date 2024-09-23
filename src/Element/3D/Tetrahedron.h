@@ -8,6 +8,8 @@ namespace FE::Volumetric {
         using Element::Element;
 
     public:
+        bool planeEquationMethod(const Node &node) const;
+
         [[nodiscard]] bool contains_node(const Node &node) const override;
 
         // барицентрические координаты
