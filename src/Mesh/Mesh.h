@@ -11,6 +11,8 @@
 #include <ostream>
 #include <set>
 
+#include "ElementRTree.h"
+
 class Mesh {
 public:
     struct MeshFormat {
@@ -50,6 +52,7 @@ private:
     MeshFormat meshFormat;
     std::vector<Node> nodes;
     std::vector<std::shared_ptr<FE::Element> > elements;
+    ElementRTree elementRTree;
     NodeData nodeData;
     BoundingBox boundingBox;
     mutable std::unordered_map<uint, std::pair<FE::Element::Type, uint> > elementTypeLUT;

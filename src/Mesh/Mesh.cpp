@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <algorithm>
+#include <complex>
 #include <iostream>
 #include <iterator>
 
@@ -39,19 +40,19 @@ void Mesh::LoadFile(const std::string &filename) {
         if (line.starts_with('$')) {
             if (line.starts_with("$End")) {
                 input_type = InputType::None;
-                LOG_INFO("done");
+                LOG_DEBUG("done");
             } else if (line.starts_with("$MeshFormat")) {
                 input_type = InputType::MeshFormat;
-                LOG_INFO("parsing MeshFormat ... ");
+                LOG_DEBUG("parsing MeshFormat ... ");
             } else if (line.starts_with("$Nodes")) {
                 input_type = InputType::Nodes;
-                LOG_INFO("parsing Nodes ... ");
+                LOG_DEBUG("parsing Nodes ... ");
             } else if (line.starts_with("$Elements")) {
                 input_type = InputType::Elements;
-                LOG_INFO("parsing Elements ... ");
+                LOG_DEBUG("parsing Elements ... ");
             } else if (line.starts_with("$NodeData")) {
                 input_type = InputType::NodeData;
-                LOG_INFO("parsing NodeData ... ");
+                LOG_DEBUG("parsing NodeData ... ");
             }
             continue;
         }
@@ -89,12 +90,19 @@ void Mesh::LoadFile(const std::string &filename) {
                 std::unreachable();
         }
     }
-    LOG_INFO("Got {} nodes", nodes.size());
-    LOG_INFO("NodeData parsing");
+    LOG_INFO("Loaded {} nodes, {} elements", nodes.size(), elements.size());
+    LOG_DEBUG("NodeData parsing");
     ParseNodeData(std::move(NodeDataBlock));
-    LOG_INFO("Calculating bounding box");
+    LOG_DEBUG("Calculating bounding box");
     CalculateBoundingBox();
-    LOG_INFO("Calculated bounding box: {}", getBoundingBox());
+    LOG_DEBUG("Calculated bounding box: {}", getBoundingBox());
+    uint rTreeLevels = std::max(static_cast<uint>(std::round(std::log(elements.size()) / log(10))), 1u);
+    LOG_INFO("Building R-tree with {} levels", rTreeLevels);
+    elementRTree = ElementRTree(elements);
+    elementRTree.subdivide(rTreeLevels);
+    elementRTree.subdivideToBatchSize(200);
+    elementRTree.saveToMSH("rtree.geo");
+    // elementRTree.print();
     LOG_INFO("File '{}' loaded", filename);
 }
 
@@ -255,6 +263,7 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
 }
 
 std::optional<std::shared_ptr<FE::Element> > Mesh::findElementByNode(const Node &node_p) const {
+    return elementRTree.findElementContainingNode(node_p);
     for (const auto &element: elements) {
         if (element->contains_node(node_p)) {
             return std::ref(element);

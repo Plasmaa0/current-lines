@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.24)
 project(current_lines C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
-
+SET(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-add_compile_options(-Wall -Wextra -Wpedantic)
+add_compile_options(-Wall -Wextra -Wpedantic -g)
 find_package(OpenMP)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -69,7 +69,9 @@ target_include_directories(current_lines-element PRIVATE src)
 
 add_library(current_lines-mesh STATIC
         src/Mesh/Mesh.cpp
-        src/Mesh/Mesh.h)
+        src/Mesh/Mesh.h
+        src/Mesh/ElementRTree.cpp
+        src/Mesh/ElementRTree.h)
 target_link_libraries(current_lines-mesh PRIVATE current_lines-element current_lines-geometry current_lines-utils)
 target_include_directories(current_lines-mesh PRIVATE src)
 
