@@ -24,3 +24,5 @@ result.geo
 results.geo
 results_*.geo
 bmf
+rtree.geo
+compile_commands.json
