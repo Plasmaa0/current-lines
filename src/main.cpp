@@ -79,11 +79,11 @@ void test_single_line() {
 void test_bmf_smr() {
     auto m = BmfSmrMesh();
     m.loadMesh("bmf/data/sphere.bmf", "bmf/data/sphere.smr");
-    LOG_INFO("Mesh initialized : {}", m);
+    /*LOG_INFO("Mesh initialized : {}", m);*/
     CurrentLineGenerator gen(m, 1000);
     LOG_INFO("Generating");
     std::set<uint32_t> ids;
-    std::ranges::for_each(m.getBoudaryDomainNodesIds(0) | std::views::stride(1),
+    std::ranges::for_each(m.getBoudaryDomainNodesIds(0) | std::views::stride(2),
                           [&](const auto &id) { ids.insert(id); });
     auto lines = gen.generate_current_lines(ids);
     LOG_INFO("Finished generating, got {} current lines", lines.size());

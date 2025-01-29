@@ -2,7 +2,6 @@
 
 #include <Geometry/VectorField.h>
 #include <Geometry/Coords.h>
-#include <Geometry/Node.h>
 #include <Utils/Color.h>
 
 #include <cstdlib>
