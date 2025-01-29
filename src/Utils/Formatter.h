@@ -1,4 +1,5 @@
 #pragma once
+#include <format>
 #include <sstream>
 #define DEFINE_FORMATTER(CLASS) \
 template <>\

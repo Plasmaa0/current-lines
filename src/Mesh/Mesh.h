@@ -9,6 +9,9 @@
 #include <optional>
 #include <memory>
 #include <ostream>
+#include <set>
+
+#include "ElementRTree.h"
 
 class Mesh {
 public:
@@ -39,10 +42,17 @@ public:
 
     [[nodiscard]] std::optional<std::shared_ptr<FE::Element> > findElementByNode(const Node &node_p) const;
 
+    [[nodiscard]] const Node &getNodeById(uint p_id) const noexcept;
+
+    [[nodiscard]] Node &getNodeById(uint p_id) noexcept;
+
+    std::optional<std::shared_ptr<FE::Element>> getElementContainingNodeId(uint nodeId_p) const;
+
 private:
     MeshFormat meshFormat;
     std::vector<Node> nodes;
     std::vector<std::shared_ptr<FE::Element> > elements;
+    ElementRTree elementRTree;
     NodeData nodeData;
     BoundingBox boundingBox;
     mutable std::unordered_map<uint, std::pair<FE::Element::Type, uint> > elementTypeLUT;

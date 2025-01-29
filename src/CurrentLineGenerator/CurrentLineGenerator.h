@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ostream>
+#include <set>
 #include <Geometry/Geometry.h>
 #include <Mesh/Mesh.h>
 #include <CurrentLineGenerator/CurrentLine.h>
@@ -11,15 +12,21 @@
 
 class CurrentLineGenerator {
 public:
-    explicit CurrentLineGenerator(const Mesh &mesh_p);
+    explicit CurrentLineGenerator(const Mesh &mesh_p, uint64_t precision = 1000);
 
-    [[nodiscard]] CurrentLine generate_current_line(const Coords &baseCoords_p);
+    [[nodiscard]] CurrentLine generate_current_line(const Coords &baseCoords_p) const;
+
+    [[nodiscard]] CurrentLine generate_current_line(
+        const Node &baseNode_p,
+        const std::optional<std::shared_ptr<FE::Element>> &baseElement_p = std::nullopt) const;
 
     [[nodiscard]] std::vector<CurrentLine> generate_current_lines(const Line &lineSegment_p, uint linesCount);
 
+    [[nodiscard]] std::vector<CurrentLine> generate_current_lines(const std::set<uint32_t>& nodeIds_p) const;
+
 private:
-    const uint64_t STEP_PRECISION = 20;
-    const uint64_t POINTS_AMOUT_MULTIPLIER = 100000;
+    uint64_t STEP_PRECISION = 1000;
+    const uint64_t POINTS_AMOUT_MULTIPLIER = 20;
     const Mesh &mesh;
     Coords size;
     //    double dx, dy, dz;

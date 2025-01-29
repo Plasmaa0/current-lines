@@ -6,6 +6,7 @@
 
 #include "Element/3D/Tetrahedron.h"
 #include "Element/3D/Hexahedron.h"
+#include "Element/3D/Prism.h"
 #include "Utils/Logger.h"
 
 namespace FE {
@@ -23,8 +24,7 @@ namespace FE {
                 LOG_WARNING("hexahedron implementation uses generic interpolation algorithm");
                 return std::make_shared<Volumetric::Hexahedron>(nodes_p, id_p, type_p);
             case (Element::Type::Prism):
-                NOT_IMPLEMENTED;
-                break; //return std::make_shared<PrismElement>(nodes_p, id_p, type_p);
+                return std::make_shared<Volumetric::Prism>(nodes_p, id_p, type_p);
             case (Element::Type::Pyramid):
                 NOT_IMPLEMENTED;
                 break; //return std::make_shared<PyramidElement>(nodes_p, id_p, type_p);

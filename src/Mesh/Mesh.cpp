@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <algorithm>
+#include <complex>
 #include <iostream>
 #include <iterator>
 
@@ -39,19 +40,19 @@ void Mesh::LoadFile(const std::string &filename) {
         if (line.starts_with('$')) {
             if (line.starts_with("$End")) {
                 input_type = InputType::None;
-                LOG_INFO("done");
+                LOG_DEBUG("done");
             } else if (line.starts_with("$MeshFormat")) {
                 input_type = InputType::MeshFormat;
-                LOG_INFO("parsing MeshFormat ... ");
+                LOG_DEBUG("parsing MeshFormat ... ");
             } else if (line.starts_with("$Nodes")) {
                 input_type = InputType::Nodes;
-                LOG_INFO("parsing Nodes ... ");
+                LOG_DEBUG("parsing Nodes ... ");
             } else if (line.starts_with("$Elements")) {
                 input_type = InputType::Elements;
-                LOG_INFO("parsing Elements ... ");
+                LOG_DEBUG("parsing Elements ... ");
             } else if (line.starts_with("$NodeData")) {
                 input_type = InputType::NodeData;
-                LOG_INFO("parsing NodeData ... ");
+                LOG_DEBUG("parsing NodeData ... ");
             }
             continue;
         }
@@ -89,12 +90,19 @@ void Mesh::LoadFile(const std::string &filename) {
                 std::unreachable();
         }
     }
-    LOG_INFO("Got {} nodes", nodes.size());
-    LOG_INFO("NodeData parsing");
+    LOG_INFO("Loaded {} nodes, {} elements", nodes.size(), elements.size());
+    LOG_DEBUG("NodeData parsing");
     ParseNodeData(std::move(NodeDataBlock));
-    LOG_INFO("Calculating bounding box");
+    LOG_DEBUG("Calculating bounding box");
     CalculateBoundingBox();
-    LOG_INFO("Calculated bounding box: {}", getBoundingBox());
+    LOG_DEBUG("Calculated bounding box: {}", getBoundingBox());
+    uint rTreeLevels = std::max(static_cast<uint>(std::round(std::log(elements.size()) / log(10))), 1u);
+    LOG_INFO("Building R-tree with {} levels", rTreeLevels);
+    elementRTree = ElementRTree(elements);
+    elementRTree.subdivide(rTreeLevels);
+    elementRTree.subdivideToBatchSize(200);
+    elementRTree.saveToMSH("rtree.geo");
+    // elementRTree.print();
     LOG_INFO("File '{}' loaded", filename);
 }
 
@@ -103,14 +111,14 @@ constexpr void Mesh::initializeLUTs() const {
     elementTypeLUT[3] = {FE::Element::Type::Quadrangle, 4}; // 4 node quadrangle
     elementTypeLUT[4] = {FE::Element::Type::Tetrahedron, 4}; // 4 node tetrahedron
     elementTypeLUT[5] = {FE::Element::Type::Hexahedron, 8}; // 8 node hexahedron
-    // elementTypeLUT[6] = {FE::Element::Type::Prism, 6}; // 6 node prism
+    elementTypeLUT[6] = {FE::Element::Type::Prism, 6}; // 6 node prism
     // elementTypeLUT[7] = {FE::Element::Type::Pyramid, 5}; // 5 node pyramid
 
     elementTypeNameLUT[FE::Element::Type::Triangle] = "Triangle";
     elementTypeNameLUT[FE::Element::Type::Quadrangle] = "Quadrangle";
     elementTypeNameLUT[FE::Element::Type::Tetrahedron] = "Tetrahedron";
     elementTypeNameLUT[FE::Element::Type::Hexahedron] = "Hexahedron";
-    // elementTypeNameLUT[FE::Element::Type::Prism] = "Prism";
+    elementTypeNameLUT[FE::Element::Type::Prism] = "Prism";
     // elementTypeNameLUT[FE::Element::Type::Pyramid] = "Pyramid";
 }
 
@@ -180,6 +188,7 @@ void Mesh::ParseElementsLine(const std::string &line) {
     }
 
     if (not elementTypeLUT.contains(type_id)) {
+        LOG_WARNING("Encountered unsupported element type. id={}", type_id);
         return; // TODO скип неподдерживаемых типов элементов
         NOT_IMPLEMENTED;
     }
@@ -188,7 +197,7 @@ void Mesh::ParseElementsLine(const std::string &line) {
     for (uint i = 0; i < nodes_to_get; ++i) {
         uint node_id;
         iss >> node_id;
-        elementNodes.push_back(std::ref(nodes[node_id])); // TODO делать [node_id-1] если нумерация от 1
+        elementNodes.push_back(std::ref(getNodeById(node_id))); // TODO делать [node_id-1] если нумерация от 1
     }
 
     elements.push_back(FE::Factory::createElement(elementNodes, elementID, elementType));
@@ -248,17 +257,51 @@ void Mesh::ParseNodeData(std::vector<std::string> &&NodeDataBlock) {
         // nodeData.nodeValues.push_back(NodeData::NodeValue(node_id, std::move(values)));
         // TODO: проверить точно ли values всего 3 штуки всегда?
         // LOG_DEBUG("node id: {}", node_id);
-        nodes[node_id].vector_field.coords = Coords(values[0], values[1], values[2]); // TODO делать [node_id-1] если нумерация от 1
+        getNodeById(node_id).vector_field.coords = Coords(values[0], values[1], values[2]);
+        // TODO делать [node_id-1] если нумерация от 1
     }
 }
 
 std::optional<std::shared_ptr<FE::Element> > Mesh::findElementByNode(const Node &node_p) const {
+    return elementRTree.findElementContainingNode(node_p);
     for (const auto &element: elements) {
         if (element->contains_node(node_p)) {
             return std::ref(element);
         }
     }
     LOG_WARNING("current cell not found");
+    return std::nullopt;
+}
+
+const Node &Mesh::getNodeById(uint p_id) const noexcept {
+    auto node = std::ranges::lower_bound(nodes, Node(p_id, {}),
+                                         [](const Node &a, const Node &b) { return a.id < b.id; });
+    if (node == nodes.cend()) {
+        LOG_ERROR("Не существует узла с id {}", p_id);
+        throw std::out_of_range(std::format("Не существует узла с id {}", p_id));
+    }
+    return std::ref(*node);
+}
+
+Node &Mesh::getNodeById(uint p_id) noexcept {
+    auto node = std::ranges::lower_bound(nodes, Node(p_id, {}),
+                                         [](const Node &a, const Node &b) { return a.id < b.id; });
+    if (node == nodes.end()) {
+        LOG_ERROR("Не существует узла с id {}", p_id);
+        throw std::out_of_range(std::format("Не существует узла с id {}", p_id));
+    }
+    return std::ref(*node);
+}
+
+std::optional<std::shared_ptr<FE::Element> > Mesh::getElementContainingNodeId(uint nodeId_p) const {
+    auto res = std::ranges::find_if(elements,
+                                    [nodeId_p](const std::shared_ptr<FE::Element> &element) {
+                                        const auto &nodes = element->getNodes();
+                                        return std::ranges::any_of(
+                                            nodes, [nodeId_p](const Node &node) { return node.id == nodeId_p; });
+                                    });
+    if (res != elements.cend())
+        return {*res};
     return std::nullopt;
 }
 

@@ -9,7 +9,7 @@ class CurrentLine {
 public:
     void appendNode(const Node &node);
 
-    void appendToFile(std::ofstream &file, uint offset = 0) const;
+    bool appendToFile(std::ofstream &file, uint offset = 0) const;
 
     [[nodiscard]] size_t size() const { return points.size(); }
 

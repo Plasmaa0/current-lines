@@ -53,9 +53,18 @@ private:
     static std::string levelToString(LogLevel level);
 };
 
+#if 1
 #define LOG_TRACE(...) Logger::getInstance()->log(LogLevel::TRACE, std::format(__VA_ARGS__), __func__)
 #define LOG_DEBUG(...) Logger::getInstance()->log(LogLevel::DEBUG, std::format(__VA_ARGS__), __func__)
 #define LOG_INFO(...) Logger::getInstance()->log(LogLevel::INFO, std::format(__VA_ARGS__), __func__)
 #define LOG_WARNING(...) Logger::getInstance()->log(LogLevel::WARNING, std::format(__VA_ARGS__), __func__)
 #define LOG_ERROR(...) Logger::getInstance()->log(LogLevel::ERROR, std::format(__VA_ARGS__), __func__)
 #define LOG_CRITICAL(...) Logger::getInstance()->log(LogLevel::CRITICAL, std::format(__VA_ARGS__), __func__)
+#else
+#define LOG_TRACE(...)
+#define LOG_DEBUG(...)
+#define LOG_INFO(...)
+#define LOG_WARNING(...)
+#define LOG_ERROR(...)
+#define LOG_CRITICAL(...)
+#endif

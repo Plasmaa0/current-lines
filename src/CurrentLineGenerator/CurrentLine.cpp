@@ -9,25 +9,27 @@ void CurrentLine::appendNode(const Node &node) {
     points.push_back(node);
 }
 
-void CurrentLine::appendToFile(std::ofstream &file, uint offset) const {
+bool CurrentLine::appendToFile(std::ofstream &file, uint offset) const {
     if (not file.is_open()) {
         LOG_ERROR("File not open whine saving CurrentLine");
         throw std::invalid_argument("FILE NOT OPEN");
     }
+    if (size() > 10000) return false;
     LOG_TRACE("Saving {} to file", *this);
     updateColors();
     //    Color {r,g,b}{Point(id) = {x, y, z, 1};}
-    for (std::vector<Node>::size_type i = 0; i < points.size(); ++i) {
-        const auto &node = points[i];
-        file << "Color {"
-                << static_cast<int>(node.color.getR()) << ", "
-                << static_cast<int>(node.color.getG()) << ", "
-                << static_cast<int>(node.color.getB()) << "}{";
-        file << "Point(" << i + 1 + offset << ") = {" << node.coords.x << ", " << node.coords.y << ", " << node.coords.z
-                << ", "
-                << 1 << "};}" << std::endl;
-    }
     if (points.size() >= 2) {
+        for (std::vector<Node>::size_type i = 0; i < points.size(); ++i) {
+            const auto &node = points[i];
+            file << "Color {"
+                    << static_cast<int>(node.color.getR()) << ", "
+                    << static_cast<int>(node.color.getG()) << ", "
+                    << static_cast<int>(node.color.getB()) << "}{";
+            file << "Point(" << i + 1 + offset << ") = {" << node.coords.x << ", " << node.coords.y << ", " << node.
+                    coords.z
+                    << ", "
+                    << 1 << "};}" << std::endl;
+        }
         file << "Line(" << CurrentLine::lineIDIncremental << ") = {";
         for (std::vector<Node>::size_type i = 0; i < points.size(); ++i) {
             file << i + 1 + offset;
@@ -36,7 +38,9 @@ void CurrentLine::appendToFile(std::ofstream &file, uint offset) const {
         }
         file << "};" << std::endl << std::flush;
         ++CurrentLine::lineIDIncremental;
+        return true;
     }
+    return false;
 }
 
 // вычислить f(x), где f такая, что:

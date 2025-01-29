@@ -2,11 +2,17 @@ cmake_minimum_required(VERSION 3.24)
 project(current_lines C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
-
+SET(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-add_compile_options(-Wall -Wextra -Wpedantic)
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+add_compile_options(-Wall -Wextra -Wpedantic -g)
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
 
 add_library(current_lines-utils STATIC
         src/Utils/Color.h
@@ -14,8 +20,9 @@ add_library(current_lines-utils STATIC
         src/Utils/Nimpl.cpp
         src/Utils/Logger.h
         src/Utils/Logger.cpp
-        src/Utils/Formatter.h)
-target_include_directories(current_lines-utils PRIVATE src)
+        src/Utils/Formatter.h
+        src/Utils/Algorithms.h)
+target_include_directories(current_lines-utils PRIVATE src/)
 
 
 add_library(current_lines-geometry STATIC
@@ -33,7 +40,8 @@ add_library(current_lines-geometry STATIC
         src/Geometry/BoundingBox.h
         src/Geometry/Plane.cpp
         src/Geometry/Plane.h)
-target_include_directories(current_lines-geometry PRIVATE src)
+target_link_libraries(current_lines-geometry PRIVATE current_lines-utils)
+target_include_directories(current_lines-geometry PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 
 add_library(current_lines-element STATIC
@@ -53,16 +61,20 @@ add_library(current_lines-element STATIC
         src/Element/3D/Tetrahedron.h
         src/Element/3D/Hexahedron.cpp
         src/Element/3D/Hexahedron.h
+        src/Element/3D/Prism.cpp
+        src/Element/3D/Prism.h
 )
 target_link_libraries(current_lines-element PRIVATE current_lines-geometry current_lines-utils)
-target_include_directories(current_lines-element PRIVATE src)
+target_include_directories(current_lines-element PRIVATE src/)
 
 
 add_library(current_lines-mesh STATIC
         src/Mesh/Mesh.cpp
-        src/Mesh/Mesh.h)
+        src/Mesh/Mesh.h
+        src/Mesh/ElementRTree.cpp
+        src/Mesh/ElementRTree.h)
 target_link_libraries(current_lines-mesh PRIVATE current_lines-element current_lines-geometry current_lines-utils)
-target_include_directories(current_lines-mesh PRIVATE src)
+target_include_directories(current_lines-mesh PRIVATE src/)
 
 
 add_library(current_lines-generator STATIC
@@ -72,12 +84,18 @@ add_library(current_lines-generator STATIC
         src/CurrentLineGenerator/CurrentLine.h
 )
 target_link_libraries(current_lines-generator PRIVATE current_lines-mesh current_lines-element current_lines-geometry current_lines-utils)
-target_include_directories(current_lines-generator PRIVATE src)
+target_include_directories(current_lines-generator PRIVATE src/)
 
+add_library(current_lines-loader STATIC
+        src/Loaders/Loader.cpp
+        src/Loaders/Loader.h)
+add_subdirectory(src/Loaders/bmf)
+target_include_directories(current_lines-loader PRIVATE src src/Loaders/)
+target_link_libraries(current_lines-loader bmf current_lines-mesh)
 
 add_executable(current_lines src/main.cpp)
-target_include_directories(current_lines PRIVATE src)
+target_include_directories(current_lines PRIVATE src/)
 
 target_link_libraries(current_lines
         current_lines-generator
-        current_lines-mesh)
+        current_lines-mesh current_lines-loader bmf)
